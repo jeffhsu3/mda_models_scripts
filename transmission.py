@@ -13,7 +13,7 @@ from sklearn.metrics import pairwise_distances
 import random
 from agehost import agehost_fx
 import copy
-import cPickle as pickle
+import pickle
 deathdict = pickle.load( open( "./acttable.p", "rb" ) )
 
 def vectorbite_fx(month,

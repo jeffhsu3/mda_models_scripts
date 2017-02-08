@@ -14,7 +14,7 @@ import pandas as pd
 import random
 from agehost import agehost_fx
 from filtercoords import filtercoords_fx
-import cPickle as pickle
+import pickle
 
 def host_fx(villages, infhost, muTrans, sizeTrans):
     '''Creates a transmission matrix for locations of infected hosts
