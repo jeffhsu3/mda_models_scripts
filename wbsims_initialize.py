@@ -137,10 +137,10 @@ def parse_coalsims_fx(msout, ploidy):
             # collisions can result here when theta is high
             pos = np.round(
                 np.array(
-                    line.strip().split()[
-                        1:],
+                    line.strip().split()[1:],
                     dtype=np.float64))
             prev = 0
+            # :TODO double check if this works correctly
             for idx, item in enumerate(pos, start=0):
                 while prev >= item:
                     item += 1
@@ -149,7 +149,7 @@ def parse_coalsims_fx(msout, ploidy):
             break
         else:
             pass
-    #:TODO convert to read directly from memory into arrays
+    pos = pos.astype(np.int64)
     if ploidy == 1:
         gt_array = []
         #:TODO Seriously think about returning the whole genotype array
@@ -178,6 +178,7 @@ def parse_coalsims_fx(msout, ploidy):
                 gt2 = hap2 * pos
                 gt_array2.append(gt2[gt2 != 0])
             except ValueError:
+                # End of output
                 break
         return(gt_array, gt_array2, pos)
 
@@ -443,7 +444,6 @@ def wormdf_fx(villages, infhost, muWormBurden, sizeWormBurden, locus,
 
      #total worms per villages
      wormpopsize = [sum(i) for i in popinit]
-
      host_idx = []
      for vill in range(villages):
           for host in range(len(popinit[vill])):
@@ -459,29 +459,28 @@ def wormdf_fx(villages, infhost, muWormBurden, sizeWormBurden, locus,
                       })
      dfAdult = dfAdult.loc[:, ['village', 'hostidx', 'age',
             'sex', 'R0net', 'fec']]
-     #add genetic data
+     # Add genetic data
      posSel = []
      for loc in range(locus):
-          if recombination[loc] == 0:
-               gt_array, mutations = coalsims_fx(wormpopsize, villages, initial_migration,
-                                    initial_distance_m, theta[loc], basepairs[loc], mutation[loc],
-                                    recombination[loc], time2Ancestral, thetaRegional, time_join)
-               #gt_array, mutations = coalsims_fx([10],1,.0001,[0],[5],13000,7.6E-8,0,1800,23,240)
-               #gt_array, mutations = coalsims_fx([10,10],2,.0001,[1000],[5,5],13000,7.6E-8,0,1800,23,240)
-               dfAdult["locus_" + str(loc)] = gt_array
-          elif recombination[loc] > 0:
-               gt_array, gt_array2, mutations = coalsims_fx(wormpopsize, villages, initial_migration,
-                          initial_distance_m, theta[loc], basepairs[loc], mutation[loc],
-                          recombination[loc], time2Ancestral, thetaRegional, time_join)
-               #gt_array, gt_array2, mutations = coalsims_fx([10],1,.0001,[0],[5],13000,7.6E-8,2.9E-9,1800,23,240)
-               #gt_array, gt_array2, mutations = coalsims_fx([10,10],2,.0001,[1000],[5,5],13000,7.6E-8,2.9E-9,1800,23,240)
-               dfAdult["locus_" + str(loc) + "_h1"] = gt_array
-               dfAdult["locus_" + str(loc) + "_h2"] = gt_array2
-               posSel.append(mutations)
-
-     #create dfSel
+         if recombination[loc] == 0:
+             gt_array, mutations = coalsims_fx(wormpopsize, villages, 
+                     initial_migration, initial_distance_m, 
+                     theta[loc], basepairs[loc], mutation[loc],
+                     recombination[loc], time2Ancestral, thetaRegional, 
+                     time_join)
+             dfAdult["locus_" + str(loc)] = gt_array
+         elif recombination[loc] > 0:
+             gt_array, gt_array2, mutations = coalsims_fx(wormpopsize, 
+                     villages, initial_migration, initial_distance_m, 
+                     theta[loc], basepairs[loc], mutation[loc],
+                     recombination[loc], time2Ancestral, thetaRegional, time_join)
+             dfAdult["locus_" + str(loc) + "_h1"] = gt_array
+             dfAdult["locus_" + str(loc) + "_h2"] = gt_array2
+             posSel.append(mutations)
+     # Create dfSel
      if selection:
-          dfSel, cds_coordinates = sel_fx(locus, posSel, basepairs, perc_locus, cds_length, intgen_length)
+          dfSel, cds_coordinates = sel_fx(locus, posSel, basepairs, 
+                  perc_locus, cds_length, intgen_length)
           fitS, fitF = fit_fx(locus, dfAdult, dfSel)
           dfAdult["fitF"] = fitF
           dfAdult["fitS"] = fitS
@@ -494,123 +493,122 @@ def wbsims_init(villages, hostpopsize, prevalence, muTrans, sizeTrans, muWormBur
                 sizeWormBurden, locus, initial_migration, initial_distance_m, theta,
                 basepairs, mutation_rate, recombination_rate, time2Ancestral, thetaRegional,
                 time_join, selection, cdslist):
-     '''This function initializes all dataframes for wbsims.py by using coalescent
-     simulations to create a population genetic history.
+    '''This function initializes all dataframes for wbsims.py by using coalescent
+    simulations to create a population genetic history.
 
-     Parameters
-     ---------
-     villages : int
-          number of villages to simulate
-     hostpopsize : int, list
-          maximum population size of each village
-     prevalence : float, list
-          prevalence of disease in each village
-     muTrans : int
-         average distance between hosts in village
-     sizeTrans : int
-         aggregation of hosts in village
-     muWormBurden : int, list
-         average number of worms per host
-     sizeWormBurden : int, list
-         aggregation of worms in hosts
-     locus : int
-         number of loci to simulate, if 1 is always assumed to be haploid
-     initial_migration : float
-         migration for ms/scrm as the fraction of subpopulation i
-         which is made up of migrants from subpopulation j each generation
-     initial_distance_m : int, list
-         distances between pairs of villages in meters
-     theta : float, list
-         population mutation rate of each locus in each village
-     basepairs : int, list
-         length of each locus
-     mutation_rate : float, list
-         mutation rate per basepair for each locus
-     recombination_rate : float, list
-         recombination rate between basepairs for each locus, a value of 0 is
-         no recombination
-     time2Ancestral : int
-         time in generation to the ancestral population
-     thetaRegional : int
-         size of the ancestral population compared to current population in theta
-     time_join : int
-         time of split between villages
-     selection : boolean
-         use selection in the model, runs sel_fx, and fit_fx to return dfSel
-     perc_locus  : float, list
-         percent of locus that is coding
-     cds_length : int
-         average length of coding regions
-     intgen_length : int
-         distance between coding regions
+    Parameters
+    ---------
+    villages : int
+      number of villages to simulate
+    hostpopsize : int, list
+      maximum population size of each village
+    prevalence : float, list
+      prevalence of disease in each village
+    muTrans : int
+     average distance between hosts in village
+    sizeTrans : int
+     aggregation of hosts in village
+    muWormBurden : int, list
+     average number of worms per host
+    sizeWormBurden : int, list
+     aggregation of worms in hosts
+    locus : int
+     number of loci to simulate, if 1 is always assumed to be haploid
+    initial_migration : float
+     migration for ms/scrm as the fraction of subpopulation i
+     which is made up of migrants from subpopulation j each generation
+    initial_distance_m : int, list
+     distances between pairs of villages in meters
+    theta : float, list
+     population mutation rate of each locus in each village
+    basepairs : int, list
+     length of each locus
+    mutation_rate : float, list
+     mutation rate per basepair for each locus
+    recombination_rate : float, list
+     recombination rate between basepairs for each locus, a value of 0 is
+     no recombination
+    time2Ancestral : int
+     time in generation to the ancestral population
+    thetaRegional : int
+     size of the ancestral population compared to current population in theta
+    time_join : int
+     time of split between villages
+    selection : boolean
+     use selection in the model, runs sel_fx, and fit_fx to return dfSel
+    perc_locus  : float, list
+     percent of locus that is coding
+    cds_length : int
+     average length of coding regions
+    intgen_length : int
+     distance between coding regions
 
-     Returns
-     ------
-     dfAdult : df
-          initialize df for adult worms
-     dfHost : df
-          initialize df for host
-     dfSel :df
-          initialized df for selection
-     dfJuv : df
-          emtpy and initialized for main functions
-     dfMF : df
-          empty and intialized for main functions
+    Returns
+    ------
+    dfAdult : df
+      initialize df for adult worms
+    dfHost : df
+      initialize df for host
+    dfSel :df
+      initialized df for selection
+    dfJuv : df
+      emtpy and initialized for main functions
+    dfMF : df
+      empty and intialized for main functions
 
-     Example of parameters 2 villages with selection:
-     villages = 2
-     hostpopsize = [100, 200]
-     prevalence = [0.1, 0.3]
-     muTrans = 100
-     sizeTrans = 1
-     muWormBurden = [5, 5]
-     sizeWormBurden = [50, 50]
-     locus = 2
-     initial_migration = 0.0001
-     initial_distance_between = [1000]
-     theta = [[5, 5], [1, 1]]
-     basepairs = [13000, 200000]
-     mutation_rate = [7.6E-8, 2.9E-9]
-     recombination_rate = [0, 2.9E-9]
-     time2Ancestral = 1800
-     thetaRegional = 23
-     time_join = 240
-     selection = True
-     perc_locus = [0, 0.18]
-     cds_length = 1100
-     intgen_length = 2500
+    Example of parameters 2 villages with selection:
+    villages = 2
+    hostpopsize = [100, 200]
+    prevalence = [0.1, 0.3]
+    muTrans = 100
+    sizeTrans = 1
+    muWormBurden = [5, 5]
+    sizeWormBurden = [50, 50]
+    locus = 2
+    initial_migration = 0.0001
+    initial_distance_between = [1000]
+    theta = [[5, 5], [1, 1]]
+    basepairs = [13000, 200000]
+    mutation_rate = [7.6E-8, 2.9E-9]
+    recombination_rate = [0, 2.9E-9]
+    time2Ancestral = 1800
+    thetaRegional = 23
+    time_join = 240
+    selection = True
+    perc_locus = [0, 0.18]
+    cds_length = 1100
+    intgen_length = 2500
     '''
-     hostpopsize = np.array(hostpopsize)
-     prevalence = np.array(prevalence)
-     infhost = np.round(hostpopsize * prevalence).astype(np.int64)
-     dfHost = host_fx(villages, infhost, muTrans, sizeTrans)
-     perc_locus = cdslist[0]
-     cds_length = cdslist[1]
-     intgen_length = cdslist[2]
-     if selection:
-          dfAdult, dfSel, cds_coordinates= wormdf_fx(villages, infhost, muWormBurden, sizeWormBurden,
-                               locus, initial_migration, initial_distance_m, theta,
-                               basepairs, mutation_rate, recombination_rate, time2Ancestral, thetaRegional,
-                               time_join, selection, perc_locus, cds_length, intgen_length)
-     else: #no selection
-          dfAdult = wormdf_fx(villages, infhost, muWormBurden, sizeWormBurden,
-                     locus, initial_migration, initial_distance_m, theta,
-                     basepairs, mutation_rate, recombination_rate, time2Ancestral, thetaRegional,
-                     time_join, selection, perc_locus, cds_length, intgen_length)
+    hostpopsize = np.array(hostpopsize)
+    prevalence = np.array(prevalence)
+    infhost = np.round(hostpopsize * prevalence).astype(np.int64)
+    dfHost = host_fx(villages, infhost, muTrans, sizeTrans)
+    perc_locus = cdslist[0]
+    cds_length = cdslist[1]
+    intgen_length = cdslist[2]
+    if selection:
+         dfAdult, dfSel, cds_coordinates= wormdf_fx(villages, infhost, muWormBurden, sizeWormBurden,
+                              locus, initial_migration, initial_distance_m, theta,
+                              basepairs, mutation_rate, recombination_rate, time2Ancestral, thetaRegional,
+                              time_join, selection, perc_locus, cds_length, intgen_length)
+    else: #no selection
+        dfAdult = wormdf_fx(villages, infhost, muWormBurden, sizeWormBurden,
+                    locus, initial_migration, initial_distance_m, theta,
+                    basepairs, mutation_rate, recombination_rate, time2Ancestral, thetaRegional,
+                    time_join, selection, perc_locus, cds_length, intgen_length)
 
-          dfSel = pd.DataFrame({
-                              'locus' : [],
-                              'position' : [],
-                              'selF' : [],
-                              'selS' : []
-                              })
+        dfSel = pd.DataFrame({
+            'locus' : [],
+            'position' : [],
+            'selF' : [],
+            'selS' : [],
+            })
 
-          cds_coordinates = []
+        cds_coordinates = []
 
-     dfJuv = pd.DataFrame({}, columns = dfAdult.columns)
-     dfMF = pd.DataFrame({}, columns = dfAdult.columns)
-
-     return(dfHost, dfAdult, dfJuv, dfMF, dfSel, cds_coordinates)
+    dfJuv = pd.DataFrame({}, columns = dfAdult.columns)
+    dfMF = pd.DataFrame({}, columns = dfAdult.columns)
+    return(dfHost, dfAdult, dfJuv, dfMF, dfSel, cds_coordinates)
 
 ##3 loci, 2 villages, with selection
 #if __name__ == '__main__':

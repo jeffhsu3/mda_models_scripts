@@ -29,10 +29,14 @@ class Village(object):
     """ Basic parameters for the village
     """
 
-    def __init__(self, hostpopsize = 100,
+    def __init__(self, identifier, hostpopsize = 100,
             prevalence = 0.1):
         """
         """
+        self.id =  identifier
         self.hostpopsize = 100
         self.prevalence = prevalence
+
+if __name__ == '__main__':
+    t = [Village(1, hostpopsize=1000), Village(2, hostpopsize=200)]
     

@@ -21,6 +21,12 @@ import transmission as trans
 from village import Village
 
 from calc_outstats import allelefreq_fx
+from plotting import (plot_allele_frequency,
+        plot_coordinates_host)
+
+from IPython import embed
+import matplotlib.pyplot as plt
+
 
 
 def wb_sims(numberGens, config_file):
@@ -40,6 +46,7 @@ def wb_sims(numberGens, config_file):
     config.read(config_file)
 
     # villages = [Village(hostpopsize = 100, prevalence = 0.1)]
+    # villages = [Village(**i) for i in ]
 
     # simulation
     sh = "simulation"
@@ -61,7 +68,6 @@ def wb_sims(numberGens, config_file):
     hostmigrate = config.getfloat(sh, 'hostmigrate')
     initial_distance_m = list(
         map(int, config.get(sh, 'initial_distance_m').split(",")))
-    print(initial_distance_m)
     assert len(initial_distance_m) == (villages * (villages - 1)) / 2
 
     # vector
@@ -177,7 +183,8 @@ def wb_sims(numberGens, config_file):
                                cdslist)
 
     ## after intialize run main loop
-    for month in range(1,sim_time):
+    fig = plot_coordinates_host(dfHost)
+    for month in range(sim_time):
         print("month is %i\n\n" %month)
         dfHost, dfJuv, dfMF, L3trans = trans.transmission_fx(month,
                                                             villages,
@@ -212,10 +219,6 @@ def wb_sims(numberGens, config_file):
                                                     dfAdult,
                                                     dfJuv,
                                                     dfMF)
-        print(dfAdult.describe())
-        print(dfMF.describe())
-        print(dfJuv.describe())
-        print(dfHost.describe())
         if month > burn_in:
                   allelefreq_fx(dfAdult, dfSel)
                   dfAdult.groupby("village").describe()
@@ -223,7 +226,9 @@ def wb_sims(numberGens, config_file):
                   dfMF.groupby("village").describe()
                   dfHost.groupby("village").describe()
 
+    return(dfHost,dfAdult,dfJuv,dfMF,dfSel)
+
 if __name__ == '__main__':
      # this probably needs to be run for at least 240 - 360 months to get away from starting conditions
-     wb_sims(10, 'tests/wbsims.cfg')
+     dfHost, dfAdult, dfJuv, dfMF, dfSel = wb_sims(10, 'tests/wbsims.cfg')
 

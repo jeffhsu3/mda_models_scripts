@@ -129,7 +129,6 @@ def new_infection_fx(dispersal,
               newhostptX = dfHost.coordinates[dfHost.hostidx == transMF.hostidx].values[0][0] + x_new
               newhostptY = dfHost.coordinates[dfHost.hostidx == transMF.hostidx].values[0][1] + y_new
               newpts = np.array([newhostptX, newhostptY])
-                      #[12, 12], [36, 36], 1, dfMF, dfJuv, dfHost, deathdict)
     #copy village
     vill = transMF.village
     #new host index
@@ -140,8 +139,10 @@ def new_infection_fx(dispersal,
     #age and agedeath function from wbsims_initialize
     age, agedeath = agehost_fx(sex, deathdict)
     #add to dfHost at bottom
-    dfHost.loc[len(dfHost) + 1] = [vill, new_hostidx, sex, age, agedeath, newpts, 0, 0]
-
+    #dfHost = dfHost.append([dfHost, pd.DataFrame([vill, new_hostidx, sex, age, agedeath, newpts, 0, 0])],ignore_index=True)
+    newhostlist = [[vill, new_hostidx, sex, age, agedeath, newpts, 0, 0]]
+    dfHost = pd.concat([dfHost, pd.DataFrame(newhostlist,columns=dfHost.columns)],ignore_index=True)
+    #dfHost.reset_index(drop=True,inplace=True)
     return(dfHost, new_hostidx)
 
 def transmission_fx(month,
@@ -209,7 +210,7 @@ def transmission_fx(month,
     for vill in range(villages):
         infhost = (dfHost.village == vill).sum()
         prev_t = infhost / float(hostpopsize[vill])
-        avgMF = ((dfMF.village == vill).sum())/float(infhost)
+        avgMF = (dfMF.village == vill).sum()/float(infhost)
         L3trans = vectorbite_fx(month, bitesPperson[vill], hours2bite[vill], hostpopsize[vill],
                                  prev_t, densitydep_uptake, avgMF, bednets,
                                  bnstart[vill], bnstop[vill], bncoverage[vill])
@@ -236,7 +237,7 @@ def transmission_fx(month,
                 disthost = np.where(dfdistHost["hostidx"] == row.hostidx)[0]
 
                 if len(dfHost[dfHost.village == vill]) < hostpopsize[vill]:
-                     prob_newinfection = 1.0/(len(distMat[disthost] <= dispersal) + 1)
+                     prob_newinfection = 1.0/(len(np.where(distMat[disthost][0] <= dispersal)[0]) + 1)
                 else: #everyone is already infected
                      prob_newinfection = 0
 
@@ -249,7 +250,9 @@ def transmission_fx(month,
                      #need to update distMat to include new host
                      distMat = pairwise_distances(np.vstack(dfHost[dfHost.village == vill].coordinates))
                 else: #reinfection
-                     rehost = dfdistHost.iloc[random.choice(np.where((distMat[disthost] <= dispersal)[0])[0])]
+                     rehost = dfdistHost.ix[random.choice(np.where(distMat[disthost][0] <= dispersal)[0])]
+                     #print(distMat[disthost])
+                     #print(np.where(distMat[disthost][0] <= dispersal)[0])
                      newrow = copy.deepcopy(row)
                      newrow['hostidx'] = rehost['hostidx']
                      newrow['age'] = 0
