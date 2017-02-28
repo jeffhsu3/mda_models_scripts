@@ -1,4 +1,7 @@
+import unittest
+
 from wbsims_init import coalsims_fx
+
 
 
 gt_array, mutations = coalsims_fx([10],1,.0001,[0],[5],13000,7.6E-8,0,1800,23,240)
