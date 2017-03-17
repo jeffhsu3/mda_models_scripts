@@ -41,7 +41,7 @@ def prevTrans_fx(L3transdict, logTime):
 #    varTrans = [val for pair in zip(*vartran)[] for val in pair]
 #    avgPrev = [val for pair in zip(*meanprev)[] for val in pair]
 #    varPrev = [val for pair in zip(*varprev)[] for val in pair]
-
+    transTable = transTable.round(4)
     #write to out
     transTable.to_csv("transTable.csv")
 
@@ -72,6 +72,7 @@ def R0net_fx(R0netlist, month):
                             "rvar" : [j for i in rvar for j in i]
                             })
     R0Table = R0Table.loc[:, ['R0', 'ravg', 'rvar']]
+    R0Table = R0Table.round(4)
     R0Table.to_csv("R0Table.csv")
     return(R0, ravg, rvar)
 

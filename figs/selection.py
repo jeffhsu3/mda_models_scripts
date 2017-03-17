@@ -76,31 +76,22 @@ def selection_fx(dfworm,
          updated with phenotype
     '''
     for loc in dfworm.h2.keys(): #since this wont include 0
-        selS = []
-        selF = []
-        iix = []
         new_positions[loc].sort()
         for pos in new_positions[loc]: #this is the dict of positions
-            if not any(pos == dfworm.pos[loc]):
-                iix = (np.argmax(dfworm.pos[loc] > pos)) #this is the position it is inserted
-                if any([i <= pos <= j for i,j in dfworm.coord[loc + "F"]]):
-                     #shape = 4, mean = 1, scale = mean/shape
-                     #here mean is mean_fitness, wildtype is assumed to be 1
-                     selF.append(np.random.gamma(4, scale=0.25))
-                     selS.append(0)
-                elif any([i <= pos <= j for i,j in dfworm.coord[loc + "S"]]):
-                         selS.append(np.random.gamma(4, scale=0.25))
-                         selF.append(0)
-                else: #not in a cds
-                    selS.append(0)
-                    selF.append(0)
-            else:
-                pass
-        try:
+            iix = np.argmax(dfworm.pos[loc] == pos) #this is the position it is inserted
+            if any([i <= pos <= j for i,j in dfworm.coord[loc + "F"]]):
+                 #shape = 4, mean = 1, scale = mean/shape
+                 #here mean is mean_fitness, wildtype is assumed to be 1
+                 selF = np.random.gamma(4, scale=0.25)
+                 selS = 0
+            elif any([i <= pos <= j for i,j in dfworm.coord[loc + "S"]]):
+                     selS = np.random.gamma(4, scale=0.25)
+                     selF = 0
+            else: #not in a cds
+                selS = 0
+                selF = 0
             dfworm.sel[loc + "S"] = np.insert(dfworm.sel[loc + "S"], iix, selS)
             dfworm.sel[loc + "F"] = np.insert(dfworm.sel[loc + "F"], iix, selF)
-#            dfworm.pos[loc] = np.insert(dfworm.pos[loc],iix)
-        except:
-            ipdb.set_trace()
+
     dfAdult_mf = fitness_fx(dfAdult_mf, dfworm)
     return(dfAdult_mf, dfworm)

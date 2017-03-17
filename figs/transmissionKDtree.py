@@ -252,8 +252,11 @@ def transmission_fx(month,
                     tcount = ''
                     infhost += 1
                 else:
-                    rehostidx = np.random.choice(transhost)
-                    new_hostidx.append(dfHost.ix[rehostidx,'hostidx'])
+                    try:
+                        rehostidx = np.random.choice(transhost)
+                        new_hostidx.append(dfHost.ix[rehostidx,'hostidx'])
+                    except:
+                        import ipdb; ipdb.set_trace()
         else:
             print("dfMF is empty")
     L3transdict['prev'].append(prev_t)

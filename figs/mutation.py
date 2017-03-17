@@ -21,7 +21,7 @@ def mutation_at_segsite(newsite, loc, worms, randmf):
         hap[randmf] = 1
     else:
         hap[randmf] = 0
-    getattr(worms,"h"+ whap)[str(loc)][:, iix]  = hap 
+    getattr(worms,"h"+ whap)[str(loc)][:, iix]  = hap
 
 
 def mutation_fx(locus,
@@ -71,7 +71,7 @@ def mutation_fx(locus,
             randmf = np.random.randint(0, nworms)
             newsite = np.random.randint(1, basepairs[loc])
             whap = np.random.randint(1, 3)
-            if newsite in worms.pos[str(loc)]: 
+            if newsite in worms.pos[str(loc)]:
                 mutation_at_segsite(newsite, loc, worms, randmf)
             else:
                 narray = np.zeros(nworms, np.uint8)
@@ -98,7 +98,7 @@ def mutation_fx(locus,
                     getattr(worms, "h"+ whap2)[str(loc)] = ohap
                 positions = np.insert(positions, iix, newsite)
                 new_positions[str(loc)].append(newsite)
-                new_index[str(loc)].append(iix)
+                new_indexs[str(loc)].append(iix)
         worms.pos[str(loc)] = positions
         #assert worms.pos[str(loc)].shape[0] == dfAdult_mf.h1[str(loc)].shape[1]
     return(worms, new_positions)

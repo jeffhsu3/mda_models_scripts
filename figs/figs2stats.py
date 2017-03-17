@@ -121,6 +121,7 @@ def output_tables_fx(logTime, nGens, outstats):
     summaryTable = summaryTable.loc[:, ['month', 'village', 'inf_host', 'avg_prev', 'var_prev', 'avg_trans',
                                   'var_trans', 'R0', 'avg_repo', 'var_repo', 'avg_adult', 'avg_juv', 'avg_mf',
                                   'var_adult', 'var_juv', 'var_mf','thetaA', 'thetaJ', 'thetaM', 'fst_b', 'da', 'dxy', 'tajD']]
+    summaryTable = summaryTable.round(5)
     summaryTable.to_csv("summaryTable.csv")
 
 
