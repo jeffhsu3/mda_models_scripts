@@ -313,7 +313,7 @@ def coalsims_fx(worm_popsize, numvillages, initial_migration, initial_distance_m
         return(gt, gt2, positions)
 
 
-def sel_fx(dfworm, basepairs, perc_locus, cds_length, intgen_length):
+def sel_fx(dfworm, basepairs, cdslist):
     '''Initializes the distribution of fitness effects for each mutation
 
     Parameters
@@ -329,68 +329,80 @@ def sel_fx(dfworm, basepairs, perc_locus, cds_length, intgen_length):
         coordinates (start, end) of coding sequences
 
     '''
-    #size parameter
-    size = 3
-    #average distance between in bp
-    mu = intgen_length
-    #last coordinate is approx num_cds * mu; so if num_cds is too large or mu is too long
-    #genes will run over the locus length
-    #dfworm.pos
-    for locus in dfworm.h2.keys():
-        num_cds = int(round((perc_locus[int(locus)]*basepairs[int(locus)]) /
-            cds_length))
-        size_cds = np.round(np.random.gamma(4, 0.25, num_cds) *
-                cds_length)
+#    #size parameter
+#    size = 3
+#    #average distance between in bp
+#    mu = intgen_length
+#    #last coordinate is approx num_cds * mu; so if num_cds is too large or mu is too long
+#    #genes will run over the locus length
+#    #dfworm.pos
+#    for locus in dfworm.h2.keys():
+#        num_cds = int(round((perc_locus[int(locus)]*basepairs[int(locus)]) /
+#            cds_length))
+#        size_cds = np.round(np.random.gamma(4, 0.25, num_cds) *
+#                cds_length)
+#
+#         #clustered like operons in c elegans
+##        cds_F = range(0, int(round(num_cds / 2.0)) + 1)
+##        cds_S = range(cds_F.pop(), num_cds)
+#
+#        #random
+#        rand_cds = np.arange(num_cds)
+#        np.random.shuffle(rand_cds)
+#        cds_F = rand_cds[0:int(round(num_cds / 2.0))]
+#        cds_S = rand_cds[len(cds_F): num_cds]
+#
+#        dfworm.sel[locus + "Ft"] = sum(size_cds[cds_F])
+#        dfworm.sel[locus + "St"] = sum(size_cds[cds_S])
+#        #r = size
+#        #m = mean
+#        #p = r / (  r + m )
+#        cds_between = np.random.negative_binomial(size, size/float(mu+size), num_cds)
+#        cds_stop = 0
+#        cds_coords = []
+#
+#        for i, j in zip(map(np.int, cds_between), map(np.int,size_cds)):
+#            #[i + cds_stop, i + cds_stop + j]
+#            if (i + cds_stop > basepairs[int(locus)]) or (i + j + cds_stop > basepairs[int(locus)]):
+#                break
+#            else:
+#                cds_coords.append([i + cds_stop, i + j + cds_stop])
+#                cds_stop += (i + j)
+        #[[1000,600],[]]
 
-         #clustered like operons in c elegans
-#        cds_F = range(0, int(round(num_cds / 2.0)) + 1)
-#        cds_S = range(cds_F.pop(), num_cds)
+    surv_length = cdslist[0]
+    surv_position = cdslist[1]
+    fec_length = cdslist[2]
+    fec_position = cdslist[3]
 
-        #random
-        rand_cds = np.arange(num_cds)
-        np.random.shuffle(rand_cds)
-        cds_F = rand_cds[0:int(round(num_cds / 2.0))]
-        cds_S = rand_cds[len(cds_F): num_cds]
-
-        dfworm.sel[locus + "Ft"] = sum(size_cds[cds_F])
-        dfworm.sel[locus + "St"] = sum(size_cds[cds_S])
-        #r = size
-        #m = mean
-        #p = r / (  r + m )
-        cds_between = np.random.negative_binomial(size, size/float(mu+size), num_cds)
-        cds_stop = 0
-        cds_coords = []
-
-        for i, j in zip(map(np.int, cds_between), map(np.int,size_cds)):
-            #[i + cds_stop, i + cds_stop + j]
-            if (i + cds_stop > basepairs[int(locus)]) or (i + j + cds_stop > basepairs[int(locus)]):
-                break
-            else:
-                cds_coords.append([i + cds_stop, i + j + cds_stop])
-                cds_stop += (i + j)
-        dfworm.coord[locus + "F"] = [cds_coords[i] for i in cds_F]
-        dfworm.coord[locus + "S"] = [cds_coords[i] for i in cds_S]
+    for loc in range(len(dfworm.h2.keys())):
+        bp = basepairs[loc + 1]
+        dfworm.coord[str(loc + 1) + "F"] = [(bp * fec_position[loc][i], bp
+                    * fec_position[loc][i] + pos) for i, pos in enumerate(fec_length[loc])]
+        dfworm.coord[str(loc + 1) + "S"] = [(bp * surv_position[loc][i], bp
+                    * surv_position[loc][i] + pos) for i, pos in enumerate(surv_length[loc])]
         selS = []
         selF = []
-        for position in dfworm.pos[locus]:
-            if any([i <= position <= j for i,j in dfworm.coord[locus + "F"]]):
+        for position in dfworm.pos[str(loc + 1)]:
+            if any([i <= position <= j for i, j in dfworm.coord[str(loc + 1) + "F"]]):
                  #shape = 4, mean = 1, scale = mean/shape
                  #here mean is mean_fitness, wildtype is assumed to be 1
                  selF.append(np.random.gamma(4, scale=0.25))
                  selS.append(0)
-            elif any([i <= position <= j for i,j in dfworm.coord[locus + "S"]]):
+            elif any([i <= position <= j for i,j in dfworm.coord[str(loc + 1) + "S"]]):
                      selS.append(np.random.gamma(4, scale=0.25))
                      selF.append(0)
             else: #not in a cds
                 selS.append(0)
                 selF.append(0)
-        dfworm.sel[locus + "F"] = np.array(selS)
-        dfworm.sel[locus + "S"] = np.array(selF)
-
+        dfworm.sel[str(loc + 1) + "F"] = np.array(selS)
+        dfworm.sel[str(loc + 1) + "S"] = np.array(selF)
+        dfworm.sel[str(loc + 1) + "Ft"] = sum(fec_length[loc])
+        dfworm.sel[str(loc + 1) + "St"] = sum(surv_length[loc])
     return(dfworm)
 
 
-def fit_fx(dfworm):
+def fit_fx(dfworm, cdslist):
     ''' Calculates mean fitness for each individual by summing fitness effects
     from dfSel for each position across all loci. Fitness here is 1 + s, where s
     is found by fit - 1.
@@ -410,40 +422,49 @@ def fit_fx(dfworm):
       array filling selS column for survival fitness
 
     '''
-    avg_over = len(dfworm.h2.keys())
     ninds = len(dfworm.meta)
+    dom = cdslist[4]
     fitF_ind = np.zeros(ninds)
     fitS_ind = np.zeros(ninds)
+    Floc = 0
+    Sloc = 0
     for locus in dfworm.h2.keys():
-        ##CODOMINANT: AA = 1 + 2s, Aa = 1 + hs, aa = 1, where h is 1
         count_sites = dfworm.h1[locus] + dfworm.h2[locus]
+        if dom == "codom":
+        ##CODOMINANT: AA = 1 + 2s, Aa = 1 + hs, aa = 1, where h is 1
+            h = 1
+        elif dom == "dom":
         ##DOMINANT: AA = 1 + 2s, Aa = 1 + hs, aa = 1, where h is 2
-#        count_sites[count_sites > 0] = 2
+            h = 2
+            count_sites[count_sites > 0] = 2
+        else:
         ##RECESSIVE: AA = 1 + 2s, Aa = 1 + hs, aa = 1, where h is 0
-#        count_sites[count_sites < 2] = 0
+            h = 0
+            count_sites[count_sites < 2] = 0
+
         sum_selsites_S = np.dot(count_sites, dfworm.sel[locus + "S"])
         sum_selsites_F = np.dot(count_sites, dfworm.sel[locus + "F"])
-####
+
         intsites_S = copy.copy(dfworm.sel[locus + "S"])
         intsites_S[intsites_S > 0] = 1
         intsites_F = copy.copy(dfworm.sel[locus + "F"])
         intsites_F[intsites_F > 0] = 1
+
         cds_sites_S = np.dot(dfworm.h1[locus], intsites_S) \
             + np.dot(dfworm.h2[locus], intsites_S)
         cds_sites_F = np.dot(dfworm.h1[locus], intsites_F) \
             + np.dot(dfworm.h2[locus], intsites_F)
-####
         fitS_ind += (( (dfworm.sel[locus + "St"] * 2) - cds_sites_S) + sum_selsites_S) / (dfworm.sel[locus + "St"] * 2)
         fitF_ind += (( (dfworm.sel[locus + "Ft"] * 2) - cds_sites_F) + sum_selsites_F) / (dfworm.sel[locus + "Ft"] * 2)
-####
-
-    return(fitF_ind / avg_over, fitS_ind / avg_over)
+        Floc += len(dfworm.coord[locus + 'F'])
+        Sloc += len(dfworm.coord[locus + 'S'])
+    return(fitF_ind / Floc, fitS_ind / Sloc)
 
 
 def wormdf_fx(village, infhost, muWormBurden, sizeWormBurden, locus,
               initial_migration, initial_distance_m, theta, basepairs, mutation,
               recombination, time2Ancestral, thetaRegional, time_join, selection,
-              perc_locus, cds_length, intgen_length):
+              cdslist):
      '''Function to generate df and coalescent histories
      Parameters
      ---------
@@ -508,9 +529,8 @@ def wormdf_fx(village, infhost, muWormBurden, sizeWormBurden, locus,
              posSel.append(mutations)
      # Create dfSel
      if selection:
-         dfworm = sel_fx(dfworm, basepairs,
-                 perc_locus, cds_length, intgen_length)
-         fitS, fitF = fit_fx(dfworm)
+         dfworm = sel_fx(dfworm, basepairs, cdslist)
+         fitS, fitF = fit_fx(dfworm, cdslist)
          dfworm.meta["fitF"] = fitF
          dfworm.meta["fitS"] = fitS
      return(dfworm)
@@ -610,14 +630,11 @@ def wbsims_init(village, hostpopsize, prevalence, muWormBurden,
     prevalence = np.array(prevalence)
     infhost = np.round(hostpopsize * prevalence).astype(np.int64)
     dfHost = host_fx(village, infhost)
-    perc_locus = cdslist[0]
-    cds_length = cdslist[1]
-    intgen_length = cdslist[2]
 
     dfworm = wormdf_fx(village, infhost, muWormBurden, sizeWormBurden,
                               locus, initial_migration, initial_distance_m, theta,
                               basepairs, mutation_rate, recombination_rate, time2Ancestral, thetaRegional,
-                              time_join, selection, perc_locus, cds_length, intgen_length)
+                              time_join, selection, cdslist)
 #    ipdb.set_trace()
     return(dfHost, dfworm)
 

@@ -56,7 +56,8 @@ def survivalbase_fx(month,
                     densitydep_fec,
                     dfHost,
                     dfworm,
-                    R0netlist):
+                    R0netlist,
+                    cdslist):
     '''Base survival function
     Parameters
     ---------
@@ -146,6 +147,6 @@ def survivalbase_fx(month,
     #fecundity calls mutation/recombination
     dfAdult_mf, dfworm = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
-                                         densitydep_fec)
+                                         densitydep_fec, cdslist)
 
     return(dfHost, dfworm, R0netlist)

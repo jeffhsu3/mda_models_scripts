@@ -95,11 +95,16 @@ def wb_sims(config_file):
     time2Ancestral = config.getint(sh, 'time2Ancestral')
     thetaRegional = config.getfloat(sh, 'thetaRegional')
     time_join = config.getint(sh, 'time_join')
+
+    #selection
+    sh = 'selection'
     selection = config.getboolean(sh, 'selection')
     fitness = config.getint(sh, 'fitness')
-    perc_locus = list(map(float, config.get(sh, 'perc_locus').split(",")))
-    cds_length = config.getint(sh, 'cds_length')
-    intgen_length = config.getint(sh, 'intgen_length')
+    surv_length = [list(map(int,i.split(","))) for i in config.get(sh, 'surv_length').split()]
+    surv_position = [list(map(float,i.split(","))) for i in config.get(sh, 'surv_position').split()]
+    fec_length = [list(map(int,i.split(","))) for i in config.get(sh, 'fec_length').split()]
+    fec_position = [list(map(float,i.split(","))) for i in config.get(sh, 'fec_position').split()]
+    dominance = config.get(sh, 'dominance')
 
     # treatment
     sh = 'treatment'
@@ -164,7 +169,7 @@ def wb_sims(config_file):
 
     else:
         sim_time = numberGens + burn_in
-        cdslist = [perc_locus, cds_length, intgen_length]
+        cdslist = [surv_length, surv_position, fec_length, fec_position, dominance]
         for i in range(villages):
             village.append(Village(i,hostpopsize[i],prevalence[i],distvill[i], hours2bite[i],
                                    bitesPperson[i], bednets, bnstart[i] + burn_in, bnstop[i] + burn_in,
@@ -222,7 +227,8 @@ def wb_sims(config_file):
                                 densitydep_fec,
                                 dfHost,
                                 dfworm,
-                                R0netlist)
+                                R0netlist,
+                                cdslist)
         #print(dfworm.meta.shape[0])
         if dfworm.meta.shape[0] == 0:
             break
@@ -264,6 +270,7 @@ def wb_sims(config_file):
         pickle.dump(R0netlist, output, -1)
 
     #start stats
+    import ipdb; ipbd.set_trace()
     print("\n\ncalculating stats\n\n")
     output_tables_fx(logTime, numberGens, outstats)
 
