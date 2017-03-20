@@ -19,6 +19,7 @@ def fecunditymda_fx(fecund,
                     basepairs,
                     selection,
                     densitydep_fec,
+                    cdslist,
                     mda_sterile,
                     clear_count,
                     mda_clear,
@@ -104,11 +105,13 @@ def fecunditymda_fx(fecund,
         dfworm.meta.ix[old, 'fec'] = np.random.poisson(positive_lambda).astype(np.int64)
     #sex, recombination, mutation
     dfAdult_mf = recombination_fx(locus, dfworm, adiix, recombination_rate, basepairs)
-    # Positions is just the new positions
+    dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
+    dfAdult_mf.meta.age = 1
     dfAdult_mf, new_positions = mutation_fx(locus, dfAdult_mf,
          mutation_rate, recombination_rate, basepairs)
     if selection: #dfAdult.sel will be updated here to same length as dfAdult_mf.pos
-        dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions)
+        dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions, cdslist)
+    dfworm.add_worms(dfAdult_mf, new_positions)
     return(dfAdult_mf, dfworm)
 
 def fecunditymda_sel1_fx(fecund,
@@ -119,6 +122,7 @@ def fecunditymda_sel1_fx(fecund,
                     basepairs,
                     selection,
                     densitydep_fec,
+                    cdslist,
                     mda_sterile,
                     clear_count,
                     mda_clear,
@@ -189,11 +193,13 @@ def fecunditymda_sel1_fx(fecund,
         dfworm.meta.ix[old, 'fec'] = np.random.poisson(positive_lambda).astype(np.int64)
     #sex, recombination, mutation
     dfAdult_mf = recombination_fx(locus, dfworm, adiix, recombination_rate, basepairs)
-    # Positions is just the new positions
+    dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
+    dfAdult_mf.meta.age = 1
     dfAdult_mf, new_positions = mutation_fx(locus, dfAdult_mf,
          mutation_rate, recombination_rate, basepairs)
     if selection: #dfAdult.sel will be updated here to same length as dfAdult_mf.pos
-        dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions)
+        dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions, cdslist)
+    dfworm.add_worms(dfAdult_mf, new_positions)
     return(dfAdult_mf, dfworm)
 
 def fecunditymda_sel2_fx(fecund,
@@ -204,6 +210,7 @@ def fecunditymda_sel2_fx(fecund,
                     basepairs,
                     selection,
                     densitydep_fec,
+                    cdslist,
                     mda_sterile,
                     clear_count,
                     mda_clear,
@@ -274,9 +281,11 @@ def fecunditymda_sel2_fx(fecund,
 ############################################
     #sex, recombination, mutation
     dfAdult_mf = recombination_fx(locus, dfworm, adiix, recombination_rate, basepairs)
-    # Positions is just the new positions
+    dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
+    dfAdult_mf.meta.age = 1
     dfAdult_mf, new_positions = mutation_fx(locus, dfAdult_mf,
          mutation_rate, recombination_rate, basepairs)
     if selection: #dfAdult.sel will be updated here to same length as dfAdult_mf.pos
-        dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions)
+        dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions, cdslist)
+    dfworm.add_worms(dfAdult_mf, new_positions)
     return(dfAdult_mf, dfworm)

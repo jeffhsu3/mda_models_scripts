@@ -52,7 +52,7 @@ def site_freqspec_fx(dfworm, mon, mf, locus):
 #    sfsy = sfs[1]
     #np.histogram(mfsfs, bins = 10)
 #    plot_allele_frequency(sfs)
-    print("{}".format(sfs))
+    #rint("{}".format(sfs))
     #pass to sel_trace
     sel_trace_fx(dfworm, freqsum, locus, mf)
 
@@ -80,6 +80,7 @@ def sel_trace_fx(dfworm, freqsum, locus, mf):
     print("seltrace")
     if bool(dfworm.sel):
         #records trace of selected alleles
+#        import ipdb; ipdb.set_trace()
         nind = mf.shape[0]
         ftrace = np.where(dfworm.sel[locus + 'F'] > 0)[0]
         f_freq = freqsum[ftrace] / (2.0 * nind)
@@ -248,7 +249,7 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
     mf_mask = dfworm.meta.ix[mf].groupby("hostidx").size() < sample_size
     if any(mf_mask):
         mf = dfworm.meta.ix[mf][~dfworm.meta["hostidx"].isin(mf_mask[mf_mask].index.values)].index.values
-        import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
     mf_pairs = dfworm.meta.ix[mf].groupby("hostidx").apply(lambda y: y.sample(sample_size).index.values)
     hostidx = [h for h in mf_pairs.keys()]
 #####
@@ -256,7 +257,6 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
         locus = str(loc)
         #print sfs and allele traces
         site_freqspec_fx(dfworm, mon, mf, locus)
-        print("back2hostgen")
         seq = float(basepairs[loc])
         pos = dfworm.pos[locus] / seq
         for host in hostidx:
@@ -291,6 +291,7 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
 #            ld_t = ld(sdpop1, haveOutgroup = False, mincount = .05, maxDist = 5000)
 
 #############this part is just slow, maybe parallel ??
+        print("starting FST,DXY")
         for hostX, hostY in combinations(hostidx, 2):
             #print("fst")
             popX = np.vstack([dfworm.h1[locus][mf_pairs[hostX]], dfworm.h2[locus][mf_pairs[hostX]]])
