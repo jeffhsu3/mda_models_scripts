@@ -207,7 +207,7 @@ def transmission_fx(month,
     hostlist =  dfworm.meta["hostidx"].unique()
     if dfHost[dfHost.hostidx.isin(hostlist)].shape[0] != dfHost.shape[0]:
         dfHost = dfHost.loc[dfHost.hostidx.isin(hostlist)]
-        dfHost.reset_index(inplace=True, drop=True)
+    dfHost.reset_index(inplace=True, drop=True)
     dispersal = 2 * sigma
     new_hostidx = []
     new_juv = []
@@ -252,8 +252,11 @@ def transmission_fx(month,
                     tcount = ''
                     infhost += 1
                 else:
-                    rehostidx = np.random.choice(transhost)
-                    new_hostidx.append(dfHost.ix[rehostidx,'hostidx'])
+                    try:
+                        rehostidx = np.random.choice(transhost)
+                        new_hostidx.append(dfHost.ix[rehostidx,'hostidx'])
+                    except:
+                        import ipdb; ipdb.set_trace()
         else:
             print("dfMF is empty")
     L3transdict['prev'].append(prev_t)

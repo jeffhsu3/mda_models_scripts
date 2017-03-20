@@ -7,7 +7,6 @@
     under certain conditions; type `show c' for details.
 """
 import numpy as np
-import ipdb
 from .recombination import recombination_fx
 from .mutation import mutation_fx
 from .selection import selection_fx
@@ -19,7 +18,8 @@ def fecunditybase_fx(fecund,
                      recombination_rate,
                      basepairs,
                      selection,
-                     densitydep_fec):
+                     densitydep_fec,
+                     cdslist):
     '''Base fecundity function, simpliest scenario
 
     Parameters
@@ -59,7 +59,7 @@ def fecunditybase_fx(fecund,
     
     dfAdult_mf, dfworm, new_positions = mutation_fx(locus, dfAdult_mf, dfworm,
          mutation_rate, recombination_rate, basepairs)
-    dfworm.add_worms(dfAdult_mf, new_positions)
     if selection: #dfAdult.sel will be updated here to same length as dfAdult_mf.pos
-        dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions)
+        dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions, cdslist)
+    dfworm.add_worms(dfAdult_mf, new_positions)
     return(dfAdult_mf, dfworm)

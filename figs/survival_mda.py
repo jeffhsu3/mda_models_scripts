@@ -32,7 +32,6 @@ def kill_adults(dfworm, dfHost, month, shapeAdult, scaleAdult,
     ##host survival is from act table
     dfHost = dfHost.query("age < agedeath")
     diehost = dfHost.hostidx.values
-
     dead_worms = np.append(dieAdult,
             dfworm.meta[~dfworm.meta.hostidx.isin(diehost)].index.values)
     dfworm.drop_worms(dead_worms)
@@ -57,7 +56,8 @@ def survivalmda_fx(month,
                    densitydep_fec,
                    dfHost,
                    dfworm,
-                   R0netlist):
+                   R0netlist,
+                   cdslist):
 
     '''base survival function
     Parameters
@@ -169,6 +169,7 @@ def survivalmda_fx(month,
         hostmda = dfHost[dfHost.MDAstate == 1].hostidx.values
 #######################
     if month%12 == 0:
+        #stats
         x = dfworm.meta.groupby(["village","stage"]).apply(lambda y: y[(y.R0net < (len(R0netlist['R0']) + 1))
                             & (y.R0net > len(R0netlist['R0']))]).R0net[:,'A']
         R0netlist['R0'].append([len(x[i]) for i in range(len(x.index.levels[0]))])
@@ -179,8 +180,9 @@ def survivalmda_fx(month,
                 village)
 
         dfHost.age = dfHost.age + 1
-        if hostmigrate != 0:
-            dfHost = hostmigration_fx(village, dfHost, hostmigrate)
+        hostmignumb = np.random.poisson(hostmigrate)
+        if hostmignumb != 0:
+            dfHost = hostmigration_fx(village, dfHost, hostmignumb)
     else: pass
 
     ##Juv is exponential 0.866; surv_Juv
@@ -212,12 +214,8 @@ def survivalmda_fx(month,
     #fecundity calls mutation/recombination
     dfAdult_mf, dfworm = fecunditymda_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
-                                         densitydep_fec, mda_sterile, clear_count, mda_clear,
+                                         densitydep_fec, cdslist, mda_sterile, clear_count, mda_clear,
                                          hostmda)
-    dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
-    dfAdult_mf.meta.age = 1
-    dfworm.add_worms(dfAdult_mf, dfAdult_mf.meta.index.values)
-
     return(dfHost, dfworm, R0netlist)
 
 def survivalmda_sel1_fx(month,
@@ -239,7 +237,8 @@ def survivalmda_sel1_fx(month,
                    densitydep_fec,
                    dfHost,
                    dfworm,
-                   R0netlist):
+                   R0netlist,
+                   cdslist):
 
     '''
 
@@ -301,8 +300,9 @@ def survivalmda_sel1_fx(month,
                 village)
 
         dfHost.age = dfHost.age + 1
-        if hostmigrate != 0:
-            dfHost = hostmigration_fx(village, dfHost, hostmigrate)
+        hostmignumb = np.random.poisson(hostmigrate)
+        if hostmignumb != 0:
+            dfHost = hostmigration_fx(village, dfHost, hostmignumb)
     else: pass
 
     ##Juv is exponential 0.866; surv_Juv
@@ -334,12 +334,8 @@ def survivalmda_sel1_fx(month,
     #fecundity calls mutation/recombination
     dfAdult_mf, dfworm = fecunditymda_sel1_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
-                                         densitydep_fec, mda_sterile, clear_count, mda_clear,
+                                         densitydep_fec, cdslist, mda_sterile, clear_count, mda_clear,
                                          hostmda)
-    dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
-    dfAdult_mf.meta.age = 1
-    dfworm.add_worms(dfAdult_mf, dfAdult_mf.meta.index.values)
-
     return(dfHost, dfworm, R0netlist)
 
 def survivalmda_sel2_fx(month,
@@ -361,7 +357,8 @@ def survivalmda_sel2_fx(month,
                    densitydep_fec,
                    dfHost,
                    dfworm,
-                   R0netlist):
+                   R0netlist,
+                   cdslist):
 
     '''base survival function
 
@@ -438,8 +435,9 @@ def survivalmda_sel2_fx(month,
         dfworm.drop_worms(dead_worms)
 
         dfHost.age = dfHost.age + 1
-        if hostmigrate != 0:
-            dfHost = hostmigration_fx(village, dfHost, hostmigrate)
+        hostmignumb = np.random.poisson(hostmigrate)
+        if hostmignumb != 0:
+            dfHost = hostmigration_fx(village, dfHost, hostmignumb)
     else: pass
 
     ##Juv is exponential 0.866; surv_Juv
@@ -471,10 +469,6 @@ def survivalmda_sel2_fx(month,
     #fecundity calls mutation/recombination
     dfAdult_mf, dfworm = fecunditymda_sel2_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
-                                         densitydep_fec, mda_sterile, clear_count, mda_clear,
+                                         densitydep_fec, cdslist, mda_sterile, clear_count, mda_clear,
                                          hostmda)
-    dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
-    dfAdult_mf.meta.age = 1
-    dfworm.add_worms(dfAdult_mf, dfAdult_mf.meta.index.values)
-
     return(dfHost, dfworm, R0netlist)

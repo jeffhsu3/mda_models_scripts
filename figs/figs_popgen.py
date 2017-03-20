@@ -52,7 +52,7 @@ def site_freqspec_fx(dfworm, mon, mf, locus):
 #    sfsy = sfs[1]
     #np.histogram(mfsfs, bins = 10)
 #    plot_allele_frequency(sfs)
-    print("{}".format(sfs))
+    #rint("{}".format(sfs))
     #pass to sel_trace
     sel_trace_fx(dfworm, freqsum, locus, mf)
 
@@ -80,11 +80,18 @@ def sel_trace_fx(dfworm, freqsum, locus, mf):
     print("seltrace")
     if bool(dfworm.sel):
         #records trace of selected alleles
+#        import ipdb; ipdb.set_trace()
+        nind = mf.shape[0]
         ftrace = np.where(dfworm.sel[locus + 'F'] > 0)[0]
-        f_freq = freqsum[ftrace] / (2.0 * mf.shape[0])
+        f_freq = freqsum[ftrace] / (2.0 * nind)
         strace = np.where(dfworm.sel[locus + 'S'] > 0)[0]
-        s_freq = freqsum[strace] / (2.0 * mf.shape[0])
+        s_freq = freqsum[strace] / (2.0 * nind)
 #        plot_allele_trace(f_freq, s_freq)
+        #avg fitness
+        avgF = dfworm.meta.loc[mf,"fitF"].mean()
+        avgS = dfworm.meta.loc[mf, "fitS"].mean()
+        #dfworm.meta.loc[mf,"fitF"].hist()
+        #dfworm.meta.loc[mf,"fitS"].hist()
     else: pass
     return(None)
 
@@ -242,6 +249,7 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
     mf_mask = dfworm.meta.ix[mf].groupby("hostidx").size() < sample_size
     if any(mf_mask):
         mf = dfworm.meta.ix[mf][~dfworm.meta["hostidx"].isin(mf_mask[mf_mask].index.values)].index.values
+        #import ipdb; ipdb.set_trace()
     mf_pairs = dfworm.meta.ix[mf].groupby("hostidx").apply(lambda y: y.sample(sample_size).index.values)
     hostidx = [h for h in mf_pairs.keys()]
 #####
@@ -249,8 +257,8 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
         locus = str(loc)
         #print sfs and allele traces
         site_freqspec_fx(dfworm, mon, mf, locus)
-        print("back2hostgen")
-        pos = dfworm.pos[locus] / float(basepairs[loc])
+        seq = float(basepairs[loc])
+        pos = dfworm.pos[locus] / seq
         for host in hostidx:
             #pylibseq
             pop1 = np.vstack([dfworm.h1[locus][mf_pairs[host]], dfworm.h2[locus][mf_pairs[host]]])
@@ -260,9 +268,9 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
             sdpop1.assign_sep(pos, gtpop1)
             pspop1 = polySIM(sdpop1)
             print("hoststats {}".format(host))
-            theta.append(pspop1.thetaw())
+            theta.append(pspop1.thetaw() / seq)
             tajimasd.append(pspop1.tajimasd())
-            thetapi.append(pspop1.thetapi())
+            thetapi.append(pspop1.thetapi() / seq)
             #pi.append(sum([(2.0*i*(size-i)) / (size*(size-1)) for i in np.sum(pop1)]))
             fulid.append(pspop1.fulid())
             fulidstar.append(pspop1.fulidstar())
@@ -283,6 +291,7 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
 #            ld_t = ld(sdpop1, haveOutgroup = False, mincount = .05, maxDist = 5000)
 
 #############this part is just slow, maybe parallel ??
+        print("starting FST,DXY")
         for hostX, hostY in combinations(hostidx, 2):
             #print("fst")
             popX = np.vstack([dfworm.h1[locus][mf_pairs[hostX]], dfworm.h2[locus][mf_pairs[hostX]]])
@@ -304,7 +313,7 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
             sizedxy = min(size)
             #is this total pairwise or product of 2 pops? Diploid?
             #print("dxy")
-            dxy.append(sum([sum((x + y) == 1) for x, y in zip(popX, popY)]) / float((sizedxy))) #approximate
+            dxy.append(sum([sum((x + y) == 1) for x, y in zip(popX, popY)]) / float((sizedxy)) / seq) #approximate
             #dxy_t = sum([sum((x + y) == 1) for x in popX for y in popY]) / (sizedxy**2.0) #more precise, but really slow
 #############
 
@@ -330,6 +339,7 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
     popgenTable = popgenTable.loc[:, ['month', 'hostidx', 'theta', 'tajD', 'thetapi', 'fulid',
                               'fulidstar', 'fulif', 'fulifstar', 'hprime', 'numexternalmutations', 'nummutations', 'numpoly',
                               'numsingletons']]
+    popgenTable = popgenTable.round(5)
     popgenTable.to_csv("popgenHostTable_v{}_m{}.csv".format(vill, mon))
     #maybe these are nested lists then to numpy then to ndarray.tofile('fstmatrix_)
 #    #writes full matrix for analysis
@@ -381,19 +391,20 @@ def villpopgen_fx(dfworm, outstats, vill, mon):
 
     for loc in range(1, len(basepairs)):
         locus = str(loc)
-        pos = dfworm.pos[locus] / float(basepairs[loc])
+        seq = float(basepairs[loc])
+        pos = dfworm.pos[locus] / seq
 #        win_size = float(outstats[2]) / float(basepairs[loc])
 #        win_step = 1.0/num_windows
         adpop = dfworm.meta[(dfworm.meta.village == vill) & (dfworm.meta.stage == "A")].sample(sample_size).index.values
         jvpop = dfworm.meta[(dfworm.meta.village == vill) & (dfworm.meta.stage == "J")].sample(sample_size).index.values
         mfpop = dfworm.meta[(dfworm.meta.village == vill) & (dfworm.meta.stage == "M")].sample(sample_size).index.values
 
-        mfgeno1 = [''.join(str(n) for n in y) for y in dfworm.h1[locus][mfpop]]
-        mfgeno2 = [''.join(str(n) for n in y) for y in dfworm.h2[locus][mfpop]]
-        jvgeno1 = [''.join(str(n) for n in y) for y in dfworm.h1[locus][jvpop]]
-        jvgeno2 = [''.join(str(n) for n in y) for y in dfworm.h2[locus][jvpop]]
-        adgeno1 = [''.join(str(n) for n in y) for y in dfworm.h1[locus][adpop]]
-        adgeno2 = [''.join(str(n) for n in y) for y in dfworm.h2[locus][adpop]]
+        mfgeno = np.vstack([dfworm.h1[locus][mfpop], dfworm.h2[locus][mfpop]])
+        jvgeno = np.vstack([dfworm.h1[locus][jvpop], dfworm.h2[locus][jvpop]])
+        adgeno = np.vstack([dfworm.h1[locus][adpop], dfworm.h2[locus][adpop]])
+        mfgeno1 = [''.join(str(n) for n in y) for y in mfgeno]
+        jvgeno1 = [''.join(str(n) for n in y) for y in jvgeno]
+        adgeno1 = [''.join(str(n) for n in y) for y in adgeno]
 
         #haplotype 1
         sdad1 = simData()
@@ -406,22 +417,11 @@ def villpopgen_fx(dfworm, outstats, vill, mon):
         psjv1 = polySIM(sdjv1)
         psmf1 = polySIM(sdmf1)
 
-        #haplotype 2
-        sdad2 = simData()
-        sdad2.assign_sep(pos, adgeno2)
-        sdjv2 = simData()
-        sdjv2.assign_sep(pos, jvgeno2)
-        sdmf2 = simData()
-        sdmf2.assign_sep(pos, mfgeno2)
-        psad2 = polySIM(sdad2)
-        psjv2 = polySIM(sdjv2)
-        psmf2 = polySIM(sdmf2)
-
         #stats
-        thetaA_t.append((psad1.thetaw() + psad2.thetaw()) / 2.0)
-        thetaJ_t.append((psjv1.thetaw() + psjv2.thetaw()) / 2.0)
-        thetaM_t.append((psmf1.thetaw() + psmf2.thetaw()) / 2.0)
-        tajD_t.append((psmf1.tajimasd() + psmf2.tajimasd()) / 2.0)
+        thetaA_t.append(psad1.thetaw() / seq)
+        thetaJ_t.append(psjv1.thetaw() / seq)
+        thetaM_t.append(psmf1.thetaw() / seq)
+        tajD_t.append(psmf1.tajimasd() / seq)
 
     #call paired functions
     fst, dxy, da = pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size) #returns mean fst_slatkin

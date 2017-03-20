@@ -56,7 +56,8 @@ def survivalbase_fx(month,
                     densitydep_fec,
                     dfHost,
                     dfworm,
-                    R0netlist):
+                    R0netlist,
+                    cdslist):
     '''Base survival function
     Parameters
     ---------
@@ -113,8 +114,10 @@ def survivalbase_fx(month,
                 village)
 
         dfHost.age = dfHost.age + 1
-        if hostmigrate != 0:
-            dfHost = hostmigration_fx(village, dfHost, hostmigrate)
+
+        hostmignumb = np.random.poisson(hostmigrate)
+        if hostmignumb != 0:
+            dfHost = hostmigration_fx(village, dfHost, hostmignumb)
     else: pass
 
     ##Juv is exponential 0.866; surv_Juv
@@ -141,11 +144,11 @@ def survivalbase_fx(month,
         #increase R0net for next gen
         dfworm.meta.ix[juviix12,'R0net'] += 1
         dfworm.meta.ix[juviix12,'stage'] = "A"
-
+    else:pass
     dfworm.drop_worms(np.append(dieJuv, dieMF))
     #fecundity calls mutation/recombination
     dfAdult_mf, dfworm = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
-                                         densitydep_fec)
+                                         densitydep_fec, cdslist)
 
     return(dfHost, dfworm, R0netlist)
