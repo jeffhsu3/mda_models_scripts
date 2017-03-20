@@ -8,6 +8,8 @@
 """
 import numpy as np
 import copy
+
+
 def fitness_fx(dfAdult_mf,
                dfworm,
                cdslist):
@@ -62,8 +64,8 @@ def fitness_fx(dfAdult_mf,
             + np.dot(dfAdult_mf.h2[locus], intsites_F)
         fitS_ind += (( (dfworm.sel[locus + "St"] * 2) - cds_sites_S) + sum_selsites_S) / (dfworm.sel[locus + "St"] * 2)
         fitF_ind += (( (dfworm.sel[locus + "Ft"] * 2) - cds_sites_F) + sum_selsites_F) / (dfworm.sel[locus + "Ft"] * 2)
-        Floc += 1
-        Sloc += 1
+        Floc += dfworm.coord[locus + "F"].shape[0]
+        Sloc += dfworm.coord[locus + "S"].shape[0]
     #import ipdb; ipdb.set_trace()
     dfAdult_mf.meta["fitS"] = fitS_ind / Sloc
     dfAdult_mf.meta["fitF"] = fitF_ind / Floc
