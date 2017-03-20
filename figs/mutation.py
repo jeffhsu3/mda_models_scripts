@@ -88,7 +88,7 @@ def mutation_fx(locus,
                             np.insert(worms.h1[str(loc)],
                                     iix, narray, axis=1)
                     worms2.h1[str(loc)] =\
-                            np.insert(worms.h1[str(loc)],
+                            np.insert(worms2.h1[str(loc)],
                                     iix, narray2, axis=1)
                 else:
                     oarray = np.zeros(nworms, np.uint8)
@@ -102,15 +102,14 @@ def mutation_fx(locus,
                     ohap = getattr(worms, "h"+ whap2)[str(loc)]
                     ohap = np.insert(ohap, iix, oarray, axis=1)
                     getattr(worms, "h"+ whap2)[str(loc)] = ohap
-                    worms2.h1[str(loc)] = np.insert(worms2.h1[str(loc)],
-                            narray2)
-                    worms2.h2[str(loc)] = np.insert(worms2.h2[str(loc)],
-                            narray2)
+                    worms2.h1[str(loc)] = np.insert(worms2.h1[str(loc)], iix,
+                            narray2, axis=1)
+                    worms2.h2[str(loc)] = np.insert(worms2.h2[str(loc)], iix,
+                            narray2, axis=1)
                 positions = np.insert(positions, iix, newsite)
                 positions2 = np.insert(positions2, iix, newsite)
                 new_index[str(loc)].append(iix)
                 new_positions[str(loc)].append(newsite)
         worms.pos[str(loc)] = positions
         worms2.pos[str(loc)] = positions2
-        #assert worms.pos[str(loc)].shape[0] == dfAdult_mf.h1[str(loc)].shape[1]
     return(worms, worms2, new_positions)
