@@ -6,8 +6,8 @@ Created on Thu Jan 12 17:59:27 2017
 @author: scott
 """
 import numpy as np
-import random
 from collections import defaultdict
+import array
 
 def mutation_at_segsite(newsite, loc, worms, randmf):
     iix = np.where(worms.pos[str(loc)] == newsite)
@@ -26,6 +26,7 @@ def mutation_at_segsite(newsite, loc, worms, randmf):
 
 def mutation_fx(locus,
                 worms,
+                worms2,
                 mutation_rate,
                 recombination_rate,
                 basepairs):
@@ -54,8 +55,9 @@ def mutation_fx(locus,
          list of positions of new mutations
     '''
     new_positions = defaultdict(list)
-    new_indexs = defaultdict(list)
+    new_index = defaultdict(list)
     nworms = worms.meta.shape[0]
+    nworms2 = worms2.meta.shape[0]
     for loc in range(locus):
         if recombination_rate[loc] == 0:
             mut_coef = 1
@@ -64,6 +66,7 @@ def mutation_fx(locus,
         num_muts = np.random.binomial(mut_coef * nworms,
                 basepairs[loc] * mutation_rate[loc])
         positions = np.copy(worms.pos[str(loc)])
+        positions2 = np.copy(worms2.pos[str(loc)])
         max_seg = positions[-1]
         for mut in range(num_muts):
             iix = 0
@@ -74,6 +77,7 @@ def mutation_fx(locus,
                 mutation_at_segsite(newsite, loc, worms, randmf)
             else:
                 narray = np.zeros(nworms, np.uint8)
+                narray2 = np.zeros(nworms2, np.uint8)
                 narray[randmf] = 1
                 if newsite > max_seg:
                     iix = len(positions)
@@ -83,6 +87,9 @@ def mutation_fx(locus,
                     worms.h1[str(loc)] =\
                             np.insert(worms.h1[str(loc)],
                                     iix, narray, axis=1)
+                    worms2.h1[str(loc)] =\
+                            np.insert(worms.h1[str(loc)],
+                                    iix, narray2, axis=1)
                 else:
                     oarray = np.zeros(nworms, np.uint8)
                     whap = np.random.randint(1, 3)
@@ -95,8 +102,15 @@ def mutation_fx(locus,
                     ohap = getattr(worms, "h"+ whap2)[str(loc)]
                     ohap = np.insert(ohap, iix, oarray, axis=1)
                     getattr(worms, "h"+ whap2)[str(loc)] = ohap
+                    worms2.h1[str(loc)] = np.insert(worms2.h1[str(loc)],
+                            narray2)
+                    worms2.h2[str(loc)] = np.insert(worms2.h2[str(loc)],
+                            narray2)
                 positions = np.insert(positions, iix, newsite)
+                positions2 = np.insert(positions2, iix, newsite)
+                new_index[str(loc)].append(iix)
                 new_positions[str(loc)].append(newsite)
         worms.pos[str(loc)] = positions
+        worms2.pos[str(loc)] = positions2
         #assert worms.pos[str(loc)].shape[0] == dfAdult_mf.h1[str(loc)].shape[1]
-    return(worms, new_positions)
+    return(worms, worms2, new_positions)
