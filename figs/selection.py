@@ -75,7 +75,7 @@ def selection_fx(dfworm,
                  dfAdult_mf,
                  new_positions,
                  cdslist):
-    '''recalculates DFE for new mutations and phenotype for new mf
+    '''Recalculates DFE for new mutations and phenotype for new mf
     Parameters
     ---------
     dfSel : df

@@ -108,9 +108,8 @@ def mutation_fx(locus,
                             narray2, axis=1)
                 positions = np.insert(positions, iix, newsite)
                 positions2 = np.insert(positions2, iix, newsite)
-                new_index[str(loc)].append(iix)
+                #new_index[str(loc)].append(iix)
                 new_positions[str(loc)].append(newsite)
-                new_indexs[str(loc)].append(iix)
         worms.pos[str(loc)] = positions
         worms2.pos[str(loc)] = positions2
     return(worms, worms2, new_positions)
