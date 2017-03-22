@@ -456,8 +456,8 @@ def fit_fx(dfworm, cdslist):
             + np.dot(dfworm.h2[locus], intsites_F)
         fitS_ind += (( (dfworm.sel[locus + "St"] * 2) - cds_sites_S) + sum_selsites_S) / (dfworm.sel[locus + "St"] * 2)
         fitF_ind += (( (dfworm.sel[locus + "Ft"] * 2) - cds_sites_F) + sum_selsites_F) / (dfworm.sel[locus + "Ft"] * 2)
-        Floc += dfworm.coord[locus + "F"].shape[0]
-        Sloc += dfworm.coord[locus + "S"].shape[0]
+        Floc += len(dfworm.coord[locus + "F"])
+        Sloc += len(dfworm.coord[locus + "S"])
     return(fitF_ind / Floc, fitS_ind / Sloc)
 
 
