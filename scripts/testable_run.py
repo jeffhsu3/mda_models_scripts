@@ -154,6 +154,7 @@ def wb_sims(config_file):
     dist.extend(initial_distance_m)
     distvill = [sum(dist[:i+1]) for i in range(len(dist))]
     village=[]
+    cdslist = [surv_length, surv_position, fec_length, fec_position, dominance]
 
     if os.path.isfile("dfworm_burnin.pkl"):
         with open('dfworm_burnin.pkl', 'rb') as input:
@@ -169,7 +170,6 @@ def wb_sims(config_file):
 
     else:
         sim_time = numberGens + burn_in
-        cdslist = [surv_length, surv_position, fec_length, fec_position, dominance]
         for i in range(villages):
             village.append(Village(i,hostpopsize[i],prevalence[i],distvill[i], hours2bite[i],
                                    bitesPperson[i], bednets, bnstart[i] + burn_in, bnstop[i] + burn_in,
@@ -270,7 +270,6 @@ def wb_sims(config_file):
         pickle.dump(R0netlist, output, -1)
 
     #start stats
-    import ipdb; ipbd.set_trace()
     print("\n\ncalculating stats\n\n")
     output_tables_fx(logTime, numberGens, outstats)
 

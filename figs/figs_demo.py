@@ -25,7 +25,7 @@ def prevTrans_fx(L3transdict, logTime):
     trans = [e for l in L3transdict['trans'] for e in l]
     prev = np.round([e for l in L3transdict['prev'] for e in l],2)
     month = np.repeat(range(1, time + 1), vill)
-    village = range(vill) * time
+    village = list(range(vill)) * time
 
     transTable = pd.DataFrame({"month" : month,
                                 "village" : village,
@@ -59,8 +59,8 @@ def R0net_fx(R0netlist, month):
     print("R0")
     #R0 by village
     R0 = []
-    R0_t = zip(*R0netlist['R0'])
-    for v in range(len(R0_t)):
+    R0_t = list(zip(*R0netlist['R0']))
+    for v in range(len(list(R0_t))):
         R0.append([float(j) / R0_t[v][i-1] for i,j in enumerate(R0_t[v])])
 
     #reproductive mean and var

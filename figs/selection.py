@@ -110,6 +110,5 @@ def selection_fx(dfworm,
                 selF = 0
             dfworm.sel[loc + "S"] = np.insert(dfworm.sel[loc + "S"], iix, selS)
             dfworm.sel[loc + "F"] = np.insert(dfworm.sel[loc + "F"], iix, selF)
-
     dfAdult_mf = fitness_fx(dfAdult_mf, dfworm, cdslist)
     return(dfAdult_mf, dfworm)
