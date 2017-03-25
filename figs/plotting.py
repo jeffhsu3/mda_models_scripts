@@ -22,6 +22,8 @@ def plot_allele_frequency(SFS):
     """
 
     return(None)
+
+
 def plot_allele_trace(allele_trace):
     """Plots trace of fitness influencing alleles
 
@@ -40,6 +42,7 @@ def plot_allele_trace(allele_trace):
     #dfworm.sel['1F'] > 0
     #np.where(dfworm.sel['2F'] > 0)
     #fig.savefig(outfile)
+
 
 def plot_coordinates_host(dfHost, thetaHost, height=7, width=7):
     """Plots host coordinates with size by theta
@@ -69,6 +72,7 @@ def plot_coordinates_host(dfHost, thetaHost, height=7, width=7):
     plt.tight_layout()
     return(fig)
 
+
 def plot_hapnetwork(hapnetobj):
     '''plots haplotype network
 
@@ -82,6 +86,7 @@ def plot_hapnetwork(hapnetobj):
     hap_network : fig
     '''
     return(None)
+
 
 def plot_pairwise(pairwise):
     '''plots pairwise matrix as surface
