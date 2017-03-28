@@ -353,12 +353,13 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
     return(fst_t, dxy, da)
 
 def villpopgen_fx(dfworm, outstats, vill, mon):
-    '''calculates popgen statistic for each village
+    '''Calculates popgen statistic for each village
     [basepairs, sample_size, window_length, num_windows, wb2vcf, figs2scikit]
+
     Parameters
-    ---------
+    ----------
     dfworm : df
-        padas df with meta, h1/h2 etc ...
+        figs.worm object
     mon : int
         month of logTime
     vill : int
@@ -395,16 +396,22 @@ def villpopgen_fx(dfworm, outstats, vill, mon):
         pos = dfworm.pos[locus] / seq
 #        win_size = float(outstats[2]) / float(basepairs[loc])
 #        win_step = 1.0/num_windows
-        adpop = dfworm.meta[(dfworm.meta.village == vill) & (dfworm.meta.stage == "A")].sample(sample_size).index.values
-        jvpop = dfworm.meta[(dfworm.meta.village == vill) & (dfworm.meta.stage == "J")].sample(sample_size).index.values
-        mfpop = dfworm.meta[(dfworm.meta.village == vill) & (dfworm.meta.stage == "M")].sample(sample_size).index.values
+        adpop = dfworm.meta[(dfworm.meta.village == vill)\
+                & (dfworm.meta.stage == "A")].sample(sample_size).index.values
+        jvpop = dfworm.meta[(dfworm.meta.village == vill)\
+                & (dfworm.meta.stage == "J")].sample(sample_size).index.values
+        mfpop = dfworm.meta[(dfworm.meta.village == vill)\
+                & (dfworm.meta.stage == "M")].sample(sample_size).index.values
 
         mfgeno = np.vstack([dfworm.h1[locus][mfpop], dfworm.h2[locus][mfpop]])
         jvgeno = np.vstack([dfworm.h1[locus][jvpop], dfworm.h2[locus][jvpop]])
         adgeno = np.vstack([dfworm.h1[locus][adpop], dfworm.h2[locus][adpop]])
-        mfgeno1 = [''.join(str(n) for n in y) for y in mfgeno]
-        jvgeno1 = [''.join(str(n) for n in y) for y in jvgeno]
-        adgeno1 = [''.join(str(n) for n in y) for y in adgeno]
+        mfgeno1 = [b''.join(bytes(n) for n in y) for y in mfgeno]
+        jvgeno1 = [b''.join(bytes(n) for n in y) for y in jvgeno]
+        adgeno1 = [b''.join(bytes(n) for n in y) for y in adgeno]
+
+        import ipdb
+        ipdb.set_trace()
 
         #haplotype 1
         sdad1 = simData()

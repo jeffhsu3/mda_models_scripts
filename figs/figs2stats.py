@@ -42,7 +42,7 @@ def output_tables_fx(logTime, nGens, outstats):
 
     #demo table params
     month = np.repeat(range(logTime, nGens, logTime), villages)
-    village = list(range(villages)) * (len(month) / 2)
+    village = list(range(villages)) * int((len(month) / 2))
     infhost = []
     adult = []
     juv = []
