@@ -13,7 +13,7 @@ import copy
 def fitness_fx(dfAdult_mf,
                dfworm,
                cdslist):
-    ''' calculates mean fitness for each individual by summing fitness effects
+    ''' Calculates mean fitness for each individual by summing fitness effects
     from dfSel for each position across all loci.
     selection coefficient, s, is found by fit - 1
     Parameters
@@ -70,6 +70,7 @@ def fitness_fx(dfAdult_mf,
     dfAdult_mf.meta["fitS"] = fitS_ind / Sloc
     dfAdult_mf.meta["fitF"] = fitF_ind / Floc
     return(dfAdult_mf)
+
 
 def selection_fx(dfworm,
                  dfAdult_mf,

@@ -96,10 +96,10 @@ def sel_trace_fx(dfworm, freqsum, locus, mf):
     return(None)
 
 def haplotype_net_fx(dfworm):
-    '''constructs haplotype network table for plotting, vcf2hap
+    '''Constructs haplotype network table for plotting, vcf2hap
 
     Parameters
-    ---------
+    ----------
     dfworm : df
         padas df with meta, h1/h2 etc ...
 
@@ -200,10 +200,10 @@ def figs2scikit_fx(dfworm, sample_size, vill, locus):
     return(None)
 
 def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
-    '''calculates the pairwise FST between hosts
+    '''Calculates the pairwise FST between hosts
 
     Parameters
-    ---------
+    ----------
     dfworm : df
         padas df with meta, h1/h2 etc ...
     mon : int

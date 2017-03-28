@@ -55,7 +55,6 @@ def mutation_fx(locus,
          list of positions of new mutations
     '''
     new_positions = defaultdict(list)
-    new_index = defaultdict(list)
     nworms = worms.meta.shape[0]
     nworms2 = worms2.meta.shape[0]
     for loc in range(locus):
@@ -93,7 +92,7 @@ def mutation_fx(locus,
                 else:
                     oarray = np.zeros(nworms, np.uint8)
                     whap = np.random.randint(1, 3)
-                    if whap == 1: whap2 =str(2)
+                    if whap == 1: whap2 = str(2)
                     else: whap2 = str(1)
                     whap = str(whap)
                     hap = getattr(worms,"h"+ whap)[str(loc)]

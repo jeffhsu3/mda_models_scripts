@@ -72,6 +72,7 @@ def plot_coordinates_host(dfHost, thetaHost, height=7, width=7):
     plt.tight_layout()
     return(fig)
 
+
 def plot_hapnetwork(hapnetobj):
     '''Plots haplotype network
 
@@ -85,6 +86,7 @@ def plot_hapnetwork(hapnetobj):
     hap_network : fig
     '''
     return(None)
+
 
 def plot_pairwise(pairwise):
     '''Plots pairwise matrix as surface
