@@ -26,7 +26,6 @@ def mutation_at_segsite(newsite, loc, worms, randmf):
 
 def mutation_fx(locus,
                 worms,
-                worms2,
                 mutation_rate,
                 recombination_rate,
                 basepairs):
@@ -56,7 +55,7 @@ def mutation_fx(locus,
     '''
     new_positions = defaultdict(list)
     nworms = worms.meta.shape[0]
-    nworms2 = worms2.meta.shape[0]
+    new_pos_iix = defaultdict(list)
     for loc in range(locus):
         if recombination_rate[loc] == 0:
             mut_coef = 1
@@ -65,7 +64,6 @@ def mutation_fx(locus,
         num_muts = np.random.binomial(mut_coef * nworms,
                 basepairs[loc] * mutation_rate[loc])
         positions = np.copy(worms.pos[str(loc)])
-        positions2 = np.copy(worms2.pos[str(loc)])
         max_seg = positions[-1]
         for mut in range(num_muts):
             iix = 0
@@ -76,7 +74,6 @@ def mutation_fx(locus,
                 mutation_at_segsite(newsite, loc, worms, randmf)
             else:
                 narray = np.zeros(nworms, np.uint8)
-                narray2 = np.zeros(nworms2, np.uint8)
                 narray[randmf] = 1
                 if newsite > max_seg:
                     iix = len(positions)
@@ -86,9 +83,6 @@ def mutation_fx(locus,
                     worms.h1[str(loc)] =\
                             np.insert(worms.h1[str(loc)],
                                     iix, narray, axis=1)
-                    worms2.h1[str(loc)] =\
-                            np.insert(worms2.h1[str(loc)],
-                                    iix, narray2, axis=1)
                 else:
                     oarray = np.zeros(nworms, np.uint8)
                     whap = np.random.randint(1, 3)
@@ -101,14 +95,14 @@ def mutation_fx(locus,
                     ohap = getattr(worms, "h"+ whap2)[str(loc)]
                     ohap = np.insert(ohap, iix, oarray, axis=1)
                     getattr(worms, "h"+ whap2)[str(loc)] = ohap
-                    worms2.h1[str(loc)] = np.insert(worms2.h1[str(loc)], iix,
-                            narray2, axis=1)
-                    worms2.h2[str(loc)] = np.insert(worms2.h2[str(loc)], iix,
-                            narray2, axis=1)
                 positions = np.insert(positions, iix, newsite)
-                positions2 = np.insert(positions2, iix, newsite)
-                #new_index[str(loc)].append(iix)
+                new_pos_iix[str(loc)].sort()
+                new_iix = np.argmax(new_pos_iix[str(loc)] > iix)
+                for ij in new_pos_iix[str(loc)][new_iix:]:
+                    #increment
+                    pass
+                new_pos_iix[str(loc)].append(iix)
                 new_positions[str(loc)].append(newsite)
         worms.pos[str(loc)] = positions
-        worms2.pos[str(loc)] = positions2
-    return(worms, worms2, new_positions)
+        ### :TODO need to renormalise iix
+    return(worms, new_pos_iix, new_positions)

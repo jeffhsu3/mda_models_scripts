@@ -57,9 +57,10 @@ def fecunditybase_fx(fecund,
     dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
     dfAdult_mf.meta.age = 1
     
-    dfAdult_mf, dfworm, new_positions = mutation_fx(locus, dfAdult_mf, dfworm,
+    dfAdult_mf, new_pos_iix, new_positions = mutation_fx(locus, dfAdult_mf, dfworm,
          mutation_rate, recombination_rate, basepairs)
     if selection: #dfAdult.sel will be updated here to same length as dfAdult_mf.pos
         dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions, cdslist)
-    dfworm.add_worms(dfAdult_mf, new_positions)
+        
+    #dfworm.add_worms(dfAdult_mf, new_positions)
     return(dfAdult_mf, dfworm)

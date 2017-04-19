@@ -82,7 +82,7 @@ def survivalbase_fx(month,
     dfHost : df
         dataframe of hosts
     basepairs : int, list
-        length of loci
+        length of locI
     hostmigrate : float
         rate of migration per year between villages
     selection : boolean
@@ -104,17 +104,18 @@ def survivalbase_fx(month,
     '''
     if month%12 == 0:
         ##stats
-        x = dfworm.meta.groupby(["village","stage"]).apply(lambda y: y[(y.R0net < (len(R0netlist['R0']) + 1))
-                            & (y.R0net > len(R0netlist['R0']))]).R0net[:,'A']
+        x = dfworm.meta.groupby(["village","stage"]).apply(
+                lambda y: y[(y.R0net < (len(R0netlist['R0']) + 1))\
+                        & (y.R0net > len(R0netlist['R0']))]).R0net[:,'A']
         R0netlist['R0'].append([len(x[i]) for i in range(len(x.index.levels[0]))])
-        R0netlist['repoavg'].append([np.mean((np.unique(x[i],return_counts=True)[1])) for i in range(len(x.index.levels[0]))])
-        R0netlist['repovar'].append([np.var((np.unique(x[i],return_counts=True)[1])) for i in range(len(x.index.levels[0]))])
+        R0netlist['repoavg'].append([np.mean((np.unique(x[i],return_counts=True)[1]))\
+                 for i in range(len(x.index.levels[0]))])
+        R0netlist['repovar'].append([np.var((np.unique(x[i],return_counts=True)[1]))\
+                 for i in range(len(x.index.levels[0]))])
         ##
-        dfHost, dfworm = kill_adults(dfworm, dfHost, month, shapeAdult, scaleAdult,
-                village)
-
+        dfHost, dfworm = kill_adults(dfworm, dfHost, month, 
+                shapeAdult, scaleAdult, village)
         dfHost.age = dfHost.age + 1
-
         hostmignumb = np.random.poisson(hostmigrate)
         if hostmignumb != 0:
             dfHost = hostmigration_fx(village, dfHost, hostmignumb)
@@ -130,9 +131,10 @@ def survivalbase_fx(month,
     mfiix = dfworm.meta[dfworm.meta.stage == "M"].index.values
     kill_mfrand = np.random.random(mfiix.shape[0])
     try:
-        kill_mffxage = weibull_min.cdf(dfworm.meta.ix[mfiix].age,shapeMF,loc=0,scale=scaleMF)
+        kill_mffxage = weibull_min.cdf(dfworm.meta.ix[mfiix].age,
+                shapeMF, loc=0, scale=scaleMF)
     except TypeError:
-        kill_mffxage = weibull_min.cdf(0,shapeMF,loc=0,scale=scaleMF)
+        kill_mffxage = weibull_min.cdf(0, shapeMF, loc=0, scale=scaleMF)
     dieMF = mfiix[np.where(kill_mfrand < kill_mffxage)]
     dfworm.meta.ix[mfiix, 'age'] += 1
 
@@ -150,5 +152,5 @@ def survivalbase_fx(month,
     dfAdult_mf, dfworm = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
                                          densitydep_fec, cdslist)
-
+    print(dfAdult_mf.shape, dfworm.shape)
     return(dfHost, dfworm, R0netlist)

@@ -406,12 +406,12 @@ def villpopgen_fx(dfworm, outstats, vill, mon):
         mfgeno = np.vstack([dfworm.h1[locus][mfpop], dfworm.h2[locus][mfpop]])
         jvgeno = np.vstack([dfworm.h1[locus][jvpop], dfworm.h2[locus][jvpop]])
         adgeno = np.vstack([dfworm.h1[locus][adpop], dfworm.h2[locus][adpop]])
-        mfgeno1 = [b''.join(bytes(n) for n in y) for y in mfgeno]
-        jvgeno1 = [b''.join(bytes(n) for n in y) for y in jvgeno]
-        adgeno1 = [b''.join(bytes(n) for n in y) for y in adgeno]
-
         import ipdb
         ipdb.set_trace()
+        mfgeno1 = [b''.join([str(n) for n in y]) for y in mfgeno]
+        jvgeno1 = [b''.join([str(n) for n in y]) for y in jvgeno]
+        adgeno1 = [b''.join([str(n) for n in y]) for y in adgeno]
+
 
         #haplotype 1
         sdad1 = simData()
