@@ -152,5 +152,4 @@ def survivalbase_fx(month,
     dfAdult_mf, dfworm = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
                                          densitydep_fec, cdslist)
-    print(dfAdult_mf.shape, dfworm.shape)
     return(dfHost, dfworm, R0netlist)

@@ -151,6 +151,7 @@ def new_infection_fx(dispersal,
     #setting with enlargement
     dfHost.ix[dfHost.index[-1] + 1] = newhostlist[0]
     return(dfHost, new_hostidx)
+
 #@profile
 def transmission_fx(month,
                     village,

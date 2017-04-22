@@ -8,7 +8,7 @@
 """
 import numpy as np
 from .recombination import recombination_fx
-from .mutation import mutation_fx
+from .mutation import worms_mutation
 from .selection import selection_fx
 
 def fecunditybase_fx(fecund,
@@ -56,11 +56,19 @@ def fecunditybase_fx(fecund,
     dfAdult_mf = recombination_fx(locus, dfworm, adiix, recombination_rate, basepairs)
     dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
     dfAdult_mf.meta.age = 1
+    dfAdult_mf.sel = dfworm.sel
+    dfAdult_mf.coord = dfworm.coord
+    '''
+    from ipdb import set_trace
+    set_trace()
+    '''
     
-    dfAdult_mf, new_pos_iix, new_positions = mutation_fx(locus, dfAdult_mf, dfworm,
+    dfAdult_mf, new_pos_iix = worms_mutation(locus, dfAdult_mf, 
          mutation_rate, recombination_rate, basepairs)
+    '''
     if selection: #dfAdult.sel will be updated here to same length as dfAdult_mf.pos
         dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions, cdslist)
+    '''
         
     #dfworm.add_worms(dfAdult_mf, new_positions)
     return(dfAdult_mf, dfworm)

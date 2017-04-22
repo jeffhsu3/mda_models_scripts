@@ -72,6 +72,32 @@ def fitness_fx(dfAdult_mf,
     return(dfAdult_mf)
 
 
+def selection_coefficient(dfworm, loc, new_pos, iix):
+    """ Calculates DFE for new positions and updates it
+    in dfworm
+
+    Paremeters
+    ----------
+    dfworm : figs.worm.Worms object
+    locus : str
+
+    """
+    if any([i <= new_pos <= j for i,j in dfworm.coord[loc + "F"]]):
+         #shape = 4, mean = 1, scale = mean/shape
+         #here mean is mean_fitness, wildtype is assumed to be 1
+         selF = np.random.gamma(4, scale=0.25)
+         selS = 0
+    elif any([i <= new_pos <= j for i,j in dfworm.coord[loc + "S"]]):
+             selS = np.random.gamma(4, scale=0.25)
+             selF = 0
+    else: #not in a cds
+        selS = 0
+        selF = 0
+    dfworm.sel[loc + "S"] = np.insert(dfworm.sel[loc + "S"], iix, selS)
+    dfworm.sel[loc + "F"] = np.insert(dfworm.sel[loc + "F"], iix, selF)
+
+
+
 def selection_fx(dfworm,
                  dfAdult_mf,
                  new_positions,
@@ -79,8 +105,6 @@ def selection_fx(dfworm,
     '''Recalculates DFE for new mutations and phenotype for new mf
     Parameters
     ---------
-    dfSel : df
-         updates this dataframe
     dfAdult_mf : df
          adds phenotype info
     dfMuts : df
