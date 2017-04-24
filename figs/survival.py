@@ -117,7 +117,7 @@ def survivalbase_fx(month,
                 shapeAdult, scaleAdult, village)
         dfHost.age = dfHost.age + 1
         hostmignumb = np.random.poisson(hostmigrate)
-        if hostmignumb != 0:
+
             dfHost = hostmigration_fx(village, dfHost, hostmignumb)
     else: pass
 
@@ -149,7 +149,7 @@ def survivalbase_fx(month,
     else:pass
     dfworm.drop_worms(np.append(dieJuv, dieMF))
     #fecundity calls mutation/recombination
-    dfAdult_mf, dfworm = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
+    dfAdult_mf, dfworm, new_pos_iix = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
                                          densitydep_fec, cdslist)
-    return(dfHost, dfworm, R0netlist)
+    return(dfHost, dfworm, new_pos_iix, R0netlist)

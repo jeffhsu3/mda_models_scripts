@@ -71,4 +71,4 @@ def fecunditybase_fx(fecund,
     '''
         
     #dfworm.add_worms(dfAdult_mf, new_positions)
-    return(dfAdult_mf, dfworm)
+    return(dfAdult_mf, dfworm, new_pos_iix)
