@@ -83,7 +83,6 @@ def worms_mutation(locus,
                     iix = np.argmax(positions > newsite)
                 positions = np.insert(positions, iix, newsite)
                 new_pos_iix[sloc].sort()
-                from ipdb import set_trace
                 '''
                 set_trace()
                 '''
@@ -91,12 +90,9 @@ def worms_mutation(locus,
                     pass
                 else:
                     new_iix = np.argmax(np.array(new_pos_iix[sloc]) > iix)
-                    for t_c, new_idx in enumerate(new_pos_iix[sloc]):
-                        t_c = t_c + new_iix 
-                        try:
-                            new_pos_iix[str(loc)][t_c] += 1
-                        except:
-                            set_trace()
+                    for t_c, new_idx in enumerate(new_pos_iix[sloc][new_iix:]):
+                        t_i = t_c + new_iix  - 1
+                        new_pos_iix[str(loc)][t_i] += 1
                 new_pos_iix[str(loc)].append(iix)
                 if recombination_rate[loc] == 0:
                     worms.h1[str(loc)] =\

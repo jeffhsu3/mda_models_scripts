@@ -58,7 +58,9 @@ def survivalbase_fx(month,
                     dfworm,
                     R0netlist,
                     cdslist):
-    '''Base survival function
+    '''
+    Base survival function
+    
     Parameters
     ---------
     month: int
@@ -98,8 +100,11 @@ def survivalbase_fx(month,
 
     Returns
     -------
-    dfworm
-    dfHost
+    dfworm :
+    dfHost :
+    new_pos_iix :
+    R0netlist :
+
 
     '''
     if month%12 == 0:
@@ -117,8 +122,7 @@ def survivalbase_fx(month,
                 shapeAdult, scaleAdult, village)
         dfHost.age = dfHost.age + 1
         hostmignumb = np.random.poisson(hostmigrate)
-
-            dfHost = hostmigration_fx(village, dfHost, hostmignumb)
+        dfHost = hostmigration_fx(village, dfHost, hostmignumb)
     else: pass
 
     ##Juv is exponential 0.866; surv_Juv

@@ -195,12 +195,8 @@ def transmission_fx(month,
 
     Returns
     ------
-    dfJuv : df
-        all new juv are age class 0
-    dfMF : df
-        removes MF that were transmitted
-    dfHost : df
-        in the case of newinfection, new host
+    dfworm : figs.worm.Worms object
+        updated object 
     L3trans : int
         number of transmitted MF
     '''
@@ -217,7 +213,8 @@ def transmission_fx(month,
     hostcoords = np.vstack(dfHost.coordinates)
     tree = cKDTree(hostcoords)
     for vill in range(len(village)):
-        mfiix_vill = dfworm.meta[(dfworm.meta["stage"] == "M") & (dfworm.meta["village"] == vill)].index.values
+        mfiix_vill = dfworm.meta[(dfworm.meta["stage"] == "M")\
+                & (dfworm.meta["village"] == vill)].index.values
         infhost = (dfHost.village == vill).sum()
         prev = infhost / float(village[vill].hostpopsize)
         prev_t.append(prev)
@@ -237,7 +234,8 @@ def transmission_fx(month,
             tcount = ''
             for mfhostidx, transhostidx in zip(transMFidx, transMFhostidx):
                 if mfhostidx != tcount:
-                    transhost = tree.query_ball_point(dfHost.ix[transhostidx[0]].coordinates, dispersal, n_jobs=-1)
+                    transhost = tree.query_ball_point(dfHost.ix[transhostidx[0]].coordinates, 
+                            dispersal, n_jobs=-1)
                     tcount = mfhostidx
                 if infhost < village[vill].hostpopsize:
                      prob_newinfection = 1.0 / (len(transhost) + 1)
@@ -248,7 +246,8 @@ def transmission_fx(month,
                     dfHost, rehostidx = new_infection_fx(dispersal, mfhostidx, dfHost)
                     new_hostidx.append(rehostidx)
                     #new host so have to resort and rebuild KDTree
-                    hostcoords = np.concatenate([hostcoords, [dfHost.ix[dfHost.index[-1]].coordinates]])
+                    hostcoords = np.concatenate([hostcoords, 
+                        [dfHost.ix[dfHost.index[-1]].coordinates]])
                     tree = cKDTree(hostcoords)
                     tcount = ''
                     infhost += 1

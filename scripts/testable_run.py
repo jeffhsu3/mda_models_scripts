@@ -208,7 +208,7 @@ def wb_sims(config_file):
                                                             dfHost,
                                                             dfworm,
                                                             L3transdict)
-        dfHost, dfworm, R0netlist = survfx(month,
+        dfHost, dfworm, hmm, R0netlist = survfx(month,
                                 village,
                                 surv_Juv,
                                 shapeMF,
@@ -229,7 +229,10 @@ def wb_sims(config_file):
                                 dfworm,
                                 R0netlist,
                                 cdslist)
+        ####### df worms has not added the new worms
         #print(dfworm.meta.shape[0])
+        from ipdb import set_trace
+        set_trace()
         if dfworm.meta.shape[0] == 0:
             break
             print("\n\n****POPULATION IS EXTINCT***\n\n")
