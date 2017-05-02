@@ -159,7 +159,8 @@ def transmission_fx(month,
                     densitydep_uptake,
                     dfHost,
                     dfworm,
-                    L3transdict):
+                    L3transdict, 
+                    juvs):
     '''Transmission events resolved as either reinfection or new infection
 
     Parameters
@@ -188,10 +189,7 @@ def transmission_fx(month,
         current time, month
     dfHost: df
          chooses the donating and accepting hosts for transmission
-    dfMF : df
-         donating MF genotype to transmit
-    dfJuv : df
-         donated MF move to Juvenille age class
+    juvs: dict
 
     Returns
     ------
@@ -207,19 +205,23 @@ def transmission_fx(month,
     dfHost.reset_index(inplace=True, drop=True)
     dispersal = 2 * sigma
     new_hostidx = []
-    new_juv = []
     trans_t = []
     prev_t = []
     hostcoords = np.vstack(dfHost.coordinates)
     tree = cKDTree(hostcoords)
+    new_juv = []
+    2_new_juv = []
+
     for vill in range(len(village)):
-        mfiix_vill = dfworm.meta[(dfworm.meta["stage"] == "M")\
-                & (dfworm.meta["village"] == vill)].index.values
         infhost = (dfHost.village == vill).sum()
         prev = infhost / float(village[vill].hostpopsize)
         prev_t.append(prev)
-        avgMF = mfiix_vill.shape[0]/float(infhost)
-        L3trans = vectorbite_fx(vill, prev, month, village, densitydep_uptake, avgMF)
+
+        for mfs in juvs['worms']:
+            mfiix_vill = dfworm.meta[(dfworm.meta["stage"] == "M")\
+                    & (dfworm.meta["village"] == vill)].index.values
+            avgMF = mfiix_vill.shape[0]/float(infhost)
+            L3trans = vectorbite_fx(vill, prev, month, village, densitydep_uptake, avgMF)
         trans_t.append(L3trans)
         print("village is %i transmitted is %i" %(vill, L3trans))
         if L3trans != 0:

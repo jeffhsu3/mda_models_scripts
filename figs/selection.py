@@ -10,7 +10,7 @@ import numpy as np
 import copy
 
 
-def fitness_fx(dfAdult_mf,
+def fitness_fx(worm_new,
                dfworm,
                cdslist):
     ''' Calculates mean fitness for each individual by summing fitness effects
@@ -36,8 +36,8 @@ def fitness_fx(dfAdult_mf,
     fitS_ind = np.zeros(ninds)
     Floc = 0
     Sloc = 0
-    for locus in dfAdult_mf.h2.keys():
-        count_sites = dfAdult_mf.h1[locus] + dfAdult_mf.h2[locus]
+    for locus in worm_new.h2.keys():
+        count_sites = worm_new.h1[locus] + worm_new.h2[locus]
         if dom == "codom":
         ##CODOMINANT: AA = 1 + 2s, Aa = 1 + hs, aa = 1, where h is 1
             h = 1
@@ -58,17 +58,17 @@ def fitness_fx(dfAdult_mf,
         intsites_F = copy.copy(dfworm.sel[locus + "F"])
         intsites_F[intsites_F > 0] = 1
 
-        cds_sites_S = np.dot(dfAdult_mf.h1[locus], intsites_S) \
-            + np.dot(dfAdult_mf.h2[locus], intsites_S)
-        cds_sites_F = np.dot(dfAdult_mf.h1[locus], intsites_F) \
-            + np.dot(dfAdult_mf.h2[locus], intsites_F)
+        cds_sites_S = np.dot(worm_new.h1[locus], intsites_S) \
+            + np.dot(worm_new.h2[locus], intsites_S)
+        cds_sites_F = np.dot(worm_new.h1[locus], intsites_F) \
+            + np.dot(worm_new.h2[locus], intsites_F)
         fitS_ind += (( (dfworm.sel[locus + "St"] * 2) - cds_sites_S) + sum_selsites_S) / (dfworm.sel[locus + "St"] * 2)
         fitF_ind += (( (dfworm.sel[locus + "Ft"] * 2) - cds_sites_F) + sum_selsites_F) / (dfworm.sel[locus + "Ft"] * 2)
         Floc += len(dfworm.coord[locus + "F"])
         Sloc += len(dfworm.coord[locus + "S"])
     #import ipdb; ipdb.set_trace()
-    dfAdult_mf.meta["fitS"] = fitS_ind / Sloc
-    dfAdult_mf.meta["fitF"] = fitF_ind / Floc
+    worm_new.meta["fitS"] = fitS_ind / Sloc
+    worm_new.meta["fitF"] = fitF_ind / Floc
     return(dfAdult_mf)
 
 

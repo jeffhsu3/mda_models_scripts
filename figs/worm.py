@@ -39,6 +39,7 @@ class Worms(object):
             other Worms object to add worms from
         index : int list
             numerical index from the other Worms object to add
+        new_pos : dict of lists
         """
         if len(new_pos) != 0 and self.meta.shape[0] !=0:
             self.meta = pd.concat([self.meta, oworms.meta],

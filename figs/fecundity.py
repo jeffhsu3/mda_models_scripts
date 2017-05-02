@@ -63,12 +63,13 @@ def fecunditybase_fx(fecund,
     set_trace()
     '''
     
-    dfAdult_mf, new_pos_iix = worms_mutation(locus, dfAdult_mf, 
+    df_new_mf, new_pos, new_pos_iix = worms_mutation(locus, dfAdult_mf, 
          mutation_rate, recombination_rate, basepairs)
     '''
     if selection: #dfAdult.sel will be updated here to same length as dfAdult_mf.pos
         dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions, cdslist)
     '''
+    df_new_mf = fitness_fx(df_new_mf, dfworm, cdslist)
         
     #dfworm.add_worms(dfAdult_mf, new_positions)
-    return(dfAdult_mf, dfworm, new_pos_iix)
+    return(dfAdult_mf, dfworm, new_pos)

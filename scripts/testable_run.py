@@ -198,6 +198,11 @@ def wb_sims(config_file):
     L3transdict = defaultdict(list)
     R0netlist = defaultdict(list)
 
+    juvs = {'worms' : [],
+            'indexes' : [],
+            'pos' : [],
+            }
+
 ####start sims
     for month in range(1,sim_time):
         print("\nmonth is {}\n".format(month))
@@ -207,8 +212,9 @@ def wb_sims(config_file):
                                                             densitydep_uptake,
                                                             dfHost,
                                                             dfworm,
-                                                            L3transdict)
-        dfHost, dfworm, hmm, R0netlist = survfx(month,
+                                                            L3transdict,
+                                                            juvs)
+        dfHost, dfworm, juvs, R0netlist = survfx(month,
                                 village,
                                 surv_Juv,
                                 shapeMF,
@@ -228,11 +234,10 @@ def wb_sims(config_file):
                                 dfHost,
                                 dfworm,
                                 R0netlist,
-                                cdslist)
+                                cdslist,
+                                juvs)
         ####### df worms has not added the new worms
         #print(dfworm.meta.shape[0])
-        from ipdb import set_trace
-        set_trace()
         if dfworm.meta.shape[0] == 0:
             break
             print("\n\n****POPULATION IS EXTINCT***\n\n")

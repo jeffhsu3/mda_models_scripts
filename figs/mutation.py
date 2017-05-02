@@ -112,4 +112,4 @@ def worms_mutation(locus,
                     getattr(worms, "h"+ whap2)[str(loc)] = ohap
                     selection_coefficient(worms, sloc, newsite, iix)
         worms.pos[str(loc)] = positions
-    return(worms, new_pos_iix)
+    return(worms, new_positions, new_pos_iix)

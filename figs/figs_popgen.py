@@ -24,6 +24,8 @@ from libsequence.fst import fst
 #from .plotting import plot_hapnetwork #for mitochondrial networks on MF
 #from .plotting import plot_pairwise
 
+import multiprocessing 
+
 def site_freqspec_fx(dfworm, mon, mf, locus):
     '''calculates the site frequency spectrum. If >1 pop also does jSFS
 
@@ -196,8 +198,13 @@ def figs2scikit_fx(dfworm, sample_size, vill, locus):
 #        mf = dfworm.meta.ix[mf][~dfworm.meta["hostidx"].isin(mf_mask[mf_mask].index.values)].index.values
 #    mf_pairs = dfworm.meta.ix[mf].groupby("hostidx").apply(lambda y: y.sample(sample_size).index.values)
 #    hostidx = [h for h in mf_pairs.keys()]
-
     return(None)
+
+'''
+def host_comb(hosts, 2):
+    combinations = lists(combinations(hosts, 2))
+    return(combinations)
+'''
 
 def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
     '''Calculates the pairwise FST between hosts
@@ -292,6 +299,10 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
 
 #############this part is just slow, maybe parallel ??
         print("starting FST,DXY")
+        p_combinations = host_comb(hostidx)
+
+        
+
         for hostX, hostY in combinations(hostidx, 2):
             #print("fst")
             popX = np.vstack([dfworm.h1[locus][mf_pairs[hostX]], dfworm.h2[locus][mf_pairs[hostX]]])
