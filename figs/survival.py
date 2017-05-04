@@ -68,6 +68,7 @@ def kill_mf(dfworm, shapeMF, scaleMF, increment_age=False):
 def age_juvenile(dfworm):
     ''' Ages juveniles
     '''
+    juviix = dfworm.meta[dfworm.meta.stage == "J"].index.values
     juviix12 = dfworm.meta.ix[juviix].query('age > 12').index.values
     if any(juviix12):
         #reset age to adult
@@ -190,7 +191,7 @@ def survivalbase_fx(month,
 
     for i, j in zip(new_worms, new_positions):
         dieJuv = kill_juvenile(i, surv_Juv)
-        diefMF = kill_mf(i, shapeMF, scaleMF)
+        dieMF = kill_mf(i, shapeMF, scaleMF)
         i.drop_worms(np.append(dieJuv, dieMF))
         age_juvenile(i)
         add_only_variants(i, dfworm)
@@ -203,4 +204,4 @@ def survivalbase_fx(month,
     ##### NEW WORMS ######################
     juvs['worms'].append(df_new_worms)
     juvs['pos'].append(new_pos)
-    return(dfHost, dfworm, juvs, new_pos_iix, R0netlist)
+    return(dfHost, dfworm, juvs, R0netlist)

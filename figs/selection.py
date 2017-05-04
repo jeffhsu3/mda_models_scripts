@@ -30,7 +30,7 @@ def fitness_fx(worm_new,
          updated df for mf
     '''
 
-    ninds = len(dfAdult_mf.meta)
+    ninds = len(worm_new.meta)
     dom = cdslist[4]
     fitF_ind = np.zeros(ninds)
     fitS_ind = np.zeros(ninds)
@@ -62,14 +62,16 @@ def fitness_fx(worm_new,
             + np.dot(worm_new.h2[locus], intsites_S)
         cds_sites_F = np.dot(worm_new.h1[locus], intsites_F) \
             + np.dot(worm_new.h2[locus], intsites_F)
-        fitS_ind += (( (dfworm.sel[locus + "St"] * 2) - cds_sites_S) + sum_selsites_S) / (dfworm.sel[locus + "St"] * 2)
-        fitF_ind += (( (dfworm.sel[locus + "Ft"] * 2) - cds_sites_F) + sum_selsites_F) / (dfworm.sel[locus + "Ft"] * 2)
+        fitS_ind += (( (dfworm.sel[locus + "St"] * 2) - cds_sites_S)\
+                + sum_selsites_S) / (dfworm.sel[locus + "St"] * 2)
+        fitF_ind += (( (dfworm.sel[locus + "Ft"] * 2) - cds_sites_F)\
+                + sum_selsites_F) / (dfworm.sel[locus + "Ft"] * 2)
         Floc += len(dfworm.coord[locus + "F"])
         Sloc += len(dfworm.coord[locus + "S"])
     #import ipdb; ipdb.set_trace()
     worm_new.meta["fitS"] = fitS_ind / Sloc
     worm_new.meta["fitF"] = fitF_ind / Floc
-    return(dfAdult_mf)
+    return(worm_new)
 
 
 def selection_coefficient(dfworm, loc, new_pos, iix):

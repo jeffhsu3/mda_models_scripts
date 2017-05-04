@@ -9,7 +9,7 @@
 import numpy as np
 from .recombination import recombination_fx
 from .mutation import worms_mutation
-from .selection import selection_fx
+from .selection import fitness_fx
 
 def fecunditybase_fx(fecund,
                      dfworm,

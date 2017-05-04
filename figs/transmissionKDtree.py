@@ -156,39 +156,44 @@ def new_infection_fx(dispersal,
     return(dfHost, new_hostidx)
 
 
-def temp_function(dfworm, transMF, dfHost, new_hostidx, tree, infhost,
-        hostpopsize, tcount='', 
-        dispersal=0):
+def temp_function(dfworm, transMF, new_hostidx, hi,
+        tcount='',  dispersal=0):
     """
+    hi : dictionary
+       host info
     """
     transMFidx = dfworm.meta.ix[transMF].hostidx.values
-    transMFhostidx = [dfHost.query('hostidx in @x').index.values for x in transMFidx]
+    transMFhostidx = [hi['dfHost'].query('hostidx in @x').index.values \
+            for x in transMFidx]
+
     for mfhostidx, transhostidx in zip(transMFidx, transMFhostidx):
         if mfhostidx != tcount:
-            transhost = tree.query_ball_point(dfHost.ix[transhostidx[0]].coordinates, 
+            transhost = hi['tree'].query_ball_point(
+                    hi['dfHost'].ix[transhostidx[0]].coordinates, 
                     dispersal, n_jobs=-1)
             tcount = mfhostidx
-        if infhost < hostpopsize:
+        if hi['infhost'] < hi['hostpopsize']:
              prob_newinfection = 1.0 / (len(transhost) + 1)
         else: #everyone is already infected
              prob_newinfection = 0
         trand = np.random.random()
         if trand < prob_newinfection:
-            dfHost, rehostidx = new_infection_fx(dispersal, mfhostidx, dfHost)
+            hi['dfHost'], rehostidx = new_infection_fx(dispersal, 
+                    mfhostidx, hi['dfHost'])
             new_hostidx.append(rehostidx)
             #new host so have to resort and rebuild KDTree
-            hostcoords = np.concatenate([hostcoords, 
-                [dfHost.ix[dfHost.index[-1]].coordinates]])
-            tree = cKDTree(hostcoords)
+            hi['hostcoords'] = np.concatenate([hi['hostcoords'], 
+                [hi['dfHost'].ix[hi['dfHost'].index[-1]].coordinates]])
+            hi['tree'] = cKDTree(hi['hostcoords'])
             tcount = ''
-            infhost += 1
+            hi['infhost'] += 1
         else:
             try:
                 rehostidx = np.random.choice(transhost)
-                new_hostidx.append(dfHost.ix[rehostidx,'hostidx'])
+                new_hostidx.append(hi['dfHost'].ix[rehostidx,'hostidx'])
             except:
                 import ipdb; ipdb.set_trace()
-    return(tcount, new_hostidx, infhost, tree)
+    return(tcount, new_hostidx)
 
 #@profile
 def transmission_fx(month,
@@ -264,7 +269,7 @@ def transmission_fx(month,
         L3_weight_factors.append(mfiix_vill.shape[0])
 
         for mfs in juvs['worms']:
-            mfmany.append(mfs.query(
+            mfmany.append(mfs.meta.query(
             "stage=='M' & village==@vill").index.values)
             L3_weight_factors.append(mfiix_vill.shape[0])
         
@@ -289,28 +294,33 @@ def transmission_fx(month,
                     chosen_mfs.append(c_mf)
             transMF.sort()
             new_juv.extend(transMF)
-            
-            transMFidx = dfworm.meta.ix[transMF].hostidx.values
-            transMFhostidx = [dfHost.query('hostidx in @x').index.values for x in transMFidx]
             tcount = ''
 
+            host_info = {'dfHost': dfHost, 
+                         'infhost': infhost,
+                         'hostcoords': hostcoords,
+                         'tree': tree,
+                         'hostpopsize': village[vill].hostpopsize 
+                         }
 
-            tcount, new_hostidx, infhost, tree = temp_function(dfworm, transMF, dfHost,
-                    new_hostidx, tree, infhost, village[vill].hostpopsize,
-                    tcount=tcount, dispersal=dispersal)
+            tcount, new_hostidx = temp_function(dfworm, transMF,
+                    new_hostidx, host_info, tcount=tcount, dispersal=dispersal)
+
+            if len(chosen_mfs) >= 1:
+                import ipdb
+                ipdb.set_trace()
 
             for mfs, tmf in zip(juvs['worms'], chosen_mfs):
                 new_hostidx_t = []
-                tcount, new_hostidx_t, infhost, tree =temp_function(mfs, tmf, dfHost, 
-                        new_hostidx_t, tree, infhost,
-                        village[vill].hostpopsize,
+                tcount, new_hostidx_t =temp_function(mfs, tmf, 
+                        new_hostidx_t,  
+                        host_info,
                         tcount=tcount, dispersal=dispersal)
-                mfs.meta.ix[mfs, 'stage'] = "J"
-                mfs.meta.ix[mfs, 'hostidx'] = new_hostidx_t
+                mfs.meta.ix[tmf, 'stage'] = "J"
+                mfs.meta.ix[tmf, 'hostidx'] = new_hostidx_t
+
         else:
             print("dfMF is empty")
-        from ipdb import set_trace
-        set_trace()
     L3transdict['prev'].append(prev_t)
     L3transdict['trans'].append(trans_t)
     dfworm.meta.ix[new_juv, 'stage'] = "J"
