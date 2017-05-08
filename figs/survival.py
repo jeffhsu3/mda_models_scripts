@@ -37,13 +37,13 @@ def kill_adults(dfworm, dfHost, month, shapeAdult, scaleAdult,
 
 
 def kill_juvenile(dfworm, surv_Juv, increment_age=False):
-    ''' Returns bool of worms to kill
+    ''' Returns bool of worms to kill. Also increments age
     '''
     juviix = dfworm.meta[dfworm.meta.stage == "J"].index.values
     kill_juvrand = np.random.random(juviix.shape[0])
     dieJuv = juviix[np.where(kill_juvrand > surv_Juv)]
     if increment_age:
-        dfworm.meta.ix[juviix,'age'] += 1
+        dfworm.meta.loc[juviix, 'age'] += 1
     else: pass
     return(dieJuv)
 
@@ -79,12 +79,14 @@ def age_juvenile(dfworm):
     else:pass
 
 
-def add_only_variants(dfworm, dfworm_to_add, index):
-    import ipdb
-    ipdb.set_trace()
+def add_only_variants(dfworm, dfworm_to_add, pos):
     to_add = dfworm.meta.stage == 'A'
+    if sum(to_add) >= 1:
+        import ipdb
+        ipdb.set_trace()
+    else: pass
     if any(to_add):
-        dfworm_to_add.add_worms(dfworm, index) 
+        dfworm_to_add.add_worms(dfworm, pos) 
     else:
         pass
 
@@ -163,7 +165,7 @@ def survivalbase_fx(month,
     ### Need to move this to function above
     new_worms = juvs['worms']
     new_indexes = juvs['indexes']
-    new_positions = ['pos']
+    new_positions = juvs['pos']
     if month%12 == 0:
         ##stats
         x = dfworm.meta.groupby(["village","stage"]).apply(
@@ -190,12 +192,12 @@ def survivalbase_fx(month,
     age_juvenile(dfworm)
 
     for i, j in zip(new_worms, new_positions):
-        dieJuv = kill_juvenile(i, surv_Juv)
-        dieMF = kill_mf(i, shapeMF, scaleMF)
+        dieJuv = kill_juvenile(i, surv_Juv, increment_age=True)
+        dieMF = kill_mf(i, shapeMF, scaleMF, increment_age=True)
         i.drop_worms(np.append(dieJuv, dieMF))
         age_juvenile(i)
-        add_only_variants(i, dfworm)
-            
+        add_only_variants(i, dfworm, j)
+
 
     #fecundity calls mutation/recombination
     df_new_worms, dfworm, new_pos = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,

@@ -50,24 +50,24 @@ def fitness_fx(worm_new,
             h = 0
             count_sites[count_sites < 2] = 0
 
-        sum_selsites_S = np.dot(count_sites, dfworm.sel[locus + "S"])
-        sum_selsites_F = np.dot(count_sites, dfworm.sel[locus + "F"])
+        sum_selsites_S = np.dot(count_sites, worm_new.sel[locus + "S"])
+        sum_selsites_F = np.dot(count_sites, worm_new.sel[locus + "F"])
 
-        intsites_S = copy.copy(dfworm.sel[locus + "S"])
+        intsites_S = copy.copy(worm_new.sel[locus + "S"])
         intsites_S[intsites_S > 0] = 1
-        intsites_F = copy.copy(dfworm.sel[locus + "F"])
+        intsites_F = copy.copy(worm_new.sel[locus + "F"])
         intsites_F[intsites_F > 0] = 1
 
         cds_sites_S = np.dot(worm_new.h1[locus], intsites_S) \
             + np.dot(worm_new.h2[locus], intsites_S)
         cds_sites_F = np.dot(worm_new.h1[locus], intsites_F) \
             + np.dot(worm_new.h2[locus], intsites_F)
-        fitS_ind += (( (dfworm.sel[locus + "St"] * 2) - cds_sites_S)\
-                + sum_selsites_S) / (dfworm.sel[locus + "St"] * 2)
-        fitF_ind += (( (dfworm.sel[locus + "Ft"] * 2) - cds_sites_F)\
-                + sum_selsites_F) / (dfworm.sel[locus + "Ft"] * 2)
-        Floc += len(dfworm.coord[locus + "F"])
-        Sloc += len(dfworm.coord[locus + "S"])
+        fitS_ind += (( (worm_new.sel[locus + "St"] * 2) - cds_sites_S)\
+                + sum_selsites_S) / (worm_new.sel[locus + "St"] * 2)
+        fitF_ind += (( (worm_new.sel[locus + "Ft"] * 2) - cds_sites_F)\
+                + sum_selsites_F) / (worm_new.sel[locus + "Ft"] * 2)
+        Floc += len(worm_new.coord[locus + "F"])
+        Sloc += len(worm_new.coord[locus + "S"])
     #import ipdb; ipdb.set_trace()
     worm_new.meta["fitS"] = fitS_ind / Sloc
     worm_new.meta["fitF"] = fitF_ind / Floc

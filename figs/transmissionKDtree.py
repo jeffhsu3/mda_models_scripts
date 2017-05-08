@@ -156,12 +156,12 @@ def new_infection_fx(dispersal,
     return(dfHost, new_hostidx)
 
 
-def temp_function(dfworm, transMF, new_hostidx, hi,
-        tcount='',  dispersal=0):
+def temp_function(dfworm, transMF, new_hostidx, hi,  dispersal=0):
     """
     hi : dictionary
        host info
     """
+    tcount = ''
     transMFidx = dfworm.meta.ix[transMF].hostidx.values
     transMFhostidx = [hi['dfHost'].query('hostidx in @x').index.values \
             for x in transMFidx]
@@ -294,8 +294,6 @@ def transmission_fx(month,
                     chosen_mfs.append(c_mf)
             transMF.sort()
             new_juv.extend(transMF)
-            tcount = ''
-
             host_info = {'dfHost': dfHost, 
                          'infhost': infhost,
                          'hostcoords': hostcoords,
@@ -304,18 +302,20 @@ def transmission_fx(month,
                          }
 
             tcount, new_hostidx = temp_function(dfworm, transMF,
-                    new_hostidx, host_info, tcount=tcount, dispersal=dispersal)
+                    new_hostidx, host_info, dispersal=dispersal)
 
+            '''
             if len(chosen_mfs) >= 1:
                 import ipdb
                 ipdb.set_trace()
+            '''
 
             for mfs, tmf in zip(juvs['worms'], chosen_mfs):
                 new_hostidx_t = []
                 tcount, new_hostidx_t =temp_function(mfs, tmf, 
                         new_hostidx_t,  
                         host_info,
-                        tcount=tcount, dispersal=dispersal)
+                        dispersal=dispersal)
                 mfs.meta.ix[tmf, 'stage'] = "J"
                 mfs.meta.ix[tmf, 'hostidx'] = new_hostidx_t
 

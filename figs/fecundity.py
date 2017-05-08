@@ -53,11 +53,13 @@ def fecunditybase_fx(fecund,
     positive_lambda[positive_lambda < 0] = 0
     dfworm.meta.ix[old, 'fec'] = np.random.poisson(positive_lambda).astype(np.int64)
     #sex, recombination, mutation
-    dfAdult_mf = recombination_fx(locus, dfworm, adiix, recombination_rate, basepairs)
-    dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
+    dfAdult_mf = recombination_fx(locus, dfworm, adiix, recombination_rate, 
+            basepairs)
+    dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , 
+            size=len(dfAdult_mf.meta))
     dfAdult_mf.meta.age = 1
-    dfAdult_mf.sel = dfworm.sel
-    dfAdult_mf.coord = dfworm.coord
+    dfAdult_mf.sel = dfworm.sel.copy()
+    dfAdult_mf.coord = dfworm.coord.copy()
     '''
     from ipdb import set_trace
     set_trace()
