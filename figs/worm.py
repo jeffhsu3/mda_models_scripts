@@ -29,29 +29,55 @@ class Worms(object):
             self.coord = cds_coords
         else:
             self.coord = {}
+            
 
-    def _merge_positions(self, loc, oworm):
+    def _merge_positions(self, loc, oworm, index):
         assert self.h1[loc].shape[1] == len(self.pos[loc])
         pos1 = np.copy(self.pos[loc])
         pos2 = np.copy(oworm.pos[loc])
         m1 = np.setdiff1d(pos1, pos2)
         m2 = np.setdiff1d(pos2, pos1)
         n1 = self.h1[loc].shape[0]
-
+        n2 = oworm.h1[loc].shape[0]
 
         self.h1[loc] = hstack((self.h1[loc],
             np.zeroes((n1, len(m2)), dtype=np.uint8)))
         iix = np.searchsorted(self.pos[loc], m2)
-
-        np.arange(
+        iixf = [i for i in range(len(pos1) + len(m2)) if i not in iix]
+        iixf.extend(iix)
+        self.h1[loc] = self.h1[:, iixf]
+        try:
+            self.h2[loc] = hstack((self.h2[loc],
+                np.zeroes((n1, len(m2)), dtype=np.uint8)))
+            self.h2[loc] = self.h2[:, iixf]
+        except KeyError:
+            pass
         
+        self.pos[loc].extend(m2)
+        self.pos[loc] = self.pos[loc][iixf]
+
+        oh1 = oworm.h1[loc].copy()
+        oh1 = hstack((oh1, 
+            np.zeroes((n1, len(m1)), dtype=np.uint8)))
+        iix = np.searchsorted(oworm.pos[loc], m1)
+        iixf = [i for i in range(len(pos2) + len(m1)) if i not in iix]
+        iixf.extend(iix)
+        oh1 = oh1[index, iixf]
+        
+        assert oh1.shape[1] == self.h1[loc].shape[1]
+        self.h1[loc] = vstack((self.h1[loc], oh1))
+        try:
+            oh2 = oworm.h2[loc].copy()
+            oh2 = hstack((oh2, 
+                np.zeroes((n1, len(m1)), dtype=np.uint8)))
+            oh2 = oh2[index, iixf]
+            self.h2[loc] = vstack((self.h2[loc], oh2))
+        except KeyError:
+            pass
 
 
 
-
-
-
-    def add_worms(self, oworms, new_pos, index, 
+    def add_worms(self, oworms, index, 
             update=False):
         """
         Parameters
@@ -62,7 +88,7 @@ class Worms(object):
             numerical index from the other Worms object to add
         new_pos : dict of lists
         """
-        if len(new_pos) != 0 and self.meta.shape[0] !=0:
+        if oworms.meta.shape[0] != 0 and self.meta.shape[0] !=0:
             self.meta = pd.concat([self.meta, oworms.meta.ix[index,:]],
                     ignore_index=True)
             self.meta.reset_index(drop=True, inplace=True)
@@ -75,27 +101,8 @@ class Worms(object):
                     else:
                         pass
                 else:
-                    self.h1[i] = hstack((self.h1[i],
-                        np.zeros((self.h1[i].shape[0], len(new_pos[i])), 
-                            dtype = np.uint8)))
-                    self.pos[i] = np.append(self.pos[i], new_pos[i])
-                    iix = np.argsort(self.pos[i])
-                    self.h1[i] = self.h1[i][:, iix]
-                    self.h1[i] = vstack((self.h1[i], oworms.h1[i]))
-                    self.pos[i] = self.pos[i][iix]
-                    try:
-                        self.h2[i] = hstack((self.h2[i],
-                            np.zeros((self.h2[i].shape[0], len(new_pos[i])),
-                                dtype=np.uint8)))
-                        self.h2[i] = self.h2[i][:, iix]
-                        self.h2[i] = vstack((self.h2[i],
-                            oworms.h2[i]))
-                    except KeyError:
-                        pass
-                if update:
-                    oworms.h1[i] = oworms
-                    oworms.pos[i] =  self.pos[i]
-        elif self.meta.shape[0] == 0 and len(new_pos) != 0:
+                    _merge_positions(i, oworms, index)
+        elif self.meta.shape[0] == 0 and oworms.meta.shape[0] != 0:
             self.meta = oworms.meta
             self.meta.reset_index(drop=True, inplace=True)
             for i in oworms.h1.keys():

@@ -79,14 +79,15 @@ def age_juvenile(dfworm):
     else:pass
 
 
-def add_only_variants(dfworm, dfworm_to_add, pos):
+def add_only_variants(dfworm, dfworm_to_add):
     to_add = dfworm.meta.stage == 'A'
     if sum(to_add) >= 1:
         import ipdb
         ipdb.set_trace()
     else: pass
+    # :TODO check if nothing
     if any(to_add):
-        dfworm_to_add.add_worms(dfworm, pos) 
+        dfworm_to_add.add_worms(dfworm, to_add) 
     else:
         pass
 
@@ -196,7 +197,7 @@ def survivalbase_fx(month,
         dieMF = kill_mf(i, shapeMF, scaleMF, increment_age=True)
         i.drop_worms(np.append(dieJuv, dieMF))
         age_juvenile(i)
-        add_only_variants(i, dfworm, j)
+        add_only_variants(i, dfworm)
 
 
     #fecundity calls mutation/recombination
