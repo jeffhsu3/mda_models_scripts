@@ -82,12 +82,12 @@ def age_juvenile(dfworm):
 def add_only_variants(dfworm, dfworm_to_add):
     to_add = dfworm.meta.stage == 'A'
     if sum(to_add) >= 1:
-        import ipdb
-        ipdb.set_trace()
+        pass
     else: pass
     # :TODO check if nothing
     if any(to_add):
         dfworm_to_add.add_worms(dfworm, to_add) 
+        dfworm.drop_worms(to_add)
     else:
         pass
 

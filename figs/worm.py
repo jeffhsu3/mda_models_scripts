@@ -40,25 +40,28 @@ class Worms(object):
         n1 = self.h1[loc].shape[0]
         n2 = oworm.h1[loc].shape[0]
 
+        import ipdb 
+        ipdb.set_trace()
+
         self.h1[loc] = hstack((self.h1[loc],
             np.zeros((n1, len(m2)), dtype=np.uint8)))
         iix = np.searchsorted(self.pos[loc], m2)
         iixf = [i for i in range(len(pos1) + len(m2)) if i not in iix]
         iixf.extend(iix)
-        self.h1[loc] = self.h1[:, iixf]
+        self.h1[loc] = self.h1[loc][:, iixf]
         try:
             self.h2[loc] = hstack((self.h2[loc],
                 np.zeros((n1, len(m2)), dtype=np.uint8)))
-            self.h2[loc] = self.h2[:, iixf]
+            self.h2[loc] = self.h2[loc][:, iixf]
         except KeyError:
             pass
         
-        self.pos[loc].extend(m2)
+        self.pos[loc] = np.concatenate((pos1, m2))
         self.pos[loc] = self.pos[loc][iixf]
 
         oh1 = oworm.h1[loc].copy()
         oh1 = hstack((oh1, 
-            np.zeros((n1, len(m1)), dtype=np.uint8)))
+            np.zeros((n2, len(m1)), dtype=np.uint8)))
         iix = np.searchsorted(oworm.pos[loc], m1)
         iixf = [i for i in range(len(pos2) + len(m1)) if i not in iix]
         iixf.extend(iix)
@@ -69,7 +72,7 @@ class Worms(object):
         try:
             oh2 = oworm.h2[loc].copy()
             oh2 = hstack((oh2, 
-                np.zeroes((n1, len(m1)), dtype=np.uint8)))
+                np.zeroes((n2, len(m1)), dtype=np.uint8)))
             oh2 = oh2[index, iixf]
             self.h2[loc] = vstack((self.h2[loc], oh2))
         except KeyError:
