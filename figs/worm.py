@@ -41,14 +41,14 @@ class Worms(object):
         n2 = oworm.h1[loc].shape[0]
 
         self.h1[loc] = hstack((self.h1[loc],
-            np.zeroes((n1, len(m2)), dtype=np.uint8)))
+            np.zeros((n1, len(m2)), dtype=np.uint8)))
         iix = np.searchsorted(self.pos[loc], m2)
         iixf = [i for i in range(len(pos1) + len(m2)) if i not in iix]
         iixf.extend(iix)
         self.h1[loc] = self.h1[:, iixf]
         try:
             self.h2[loc] = hstack((self.h2[loc],
-                np.zeroes((n1, len(m2)), dtype=np.uint8)))
+                np.zeros((n1, len(m2)), dtype=np.uint8)))
             self.h2[loc] = self.h2[:, iixf]
         except KeyError:
             pass
@@ -58,7 +58,7 @@ class Worms(object):
 
         oh1 = oworm.h1[loc].copy()
         oh1 = hstack((oh1, 
-            np.zeroes((n1, len(m1)), dtype=np.uint8)))
+            np.zeros((n1, len(m1)), dtype=np.uint8)))
         iix = np.searchsorted(oworm.pos[loc], m1)
         iixf = [i for i in range(len(pos2) + len(m1)) if i not in iix]
         iixf.extend(iix)
@@ -101,7 +101,7 @@ class Worms(object):
                     else:
                         pass
                 else:
-                    _merge_positions(i, oworms, index)
+                    self._merge_positions(i, oworms, index)
         elif self.meta.shape[0] == 0 and oworms.meta.shape[0] != 0:
             self.meta = oworms.meta
             self.meta.reset_index(drop=True, inplace=True)
