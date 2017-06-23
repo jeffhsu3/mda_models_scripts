@@ -8,7 +8,7 @@
 """
 import numpy as np
 from .recombination import recombination_fx
-from .mutation import mutation_fx
+from .mutation import worms_mutation
 from .selection import selection_fx
 
 def fecunditybase_fx(fecund,
@@ -48,15 +48,19 @@ def fecunditybase_fx(fecund,
     #linear function defining decline in fecundity with age
     m = float(0 - fecund) / (21 - 6)
     b = 0 - m * 21
-    #assign fecundity value based on age function
+    # Assign fecundity value based on age function
     positive_lambda = (dfworm.meta.ix[old].age.values * m) + b
     positive_lambda[positive_lambda < 0] = 0
     dfworm.meta.ix[old, 'fec'] = np.random.poisson(positive_lambda).astype(np.int64)
-    #sex, recombination, mutation
+    # Sex, recombination, mutation
     dfAdult_mf = recombination_fx(locus, dfworm, adiix, recombination_rate, basepairs)
     dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
     dfAdult_mf.meta.age = 1
-    dfAdult_mf, new_positions = mutation_fx(locus, dfAdult_mf,
+    dfAdult_mf.sel = dfworm.sel.copy()
+    dfAdult_mf.coord = dfworm.coord.copy()
+
+    #### WORKING ON THIS ####################################
+    df_new_mf, new_positions, new_pos_iix = worms_mutation(locus, dfAdult_mf,
          mutation_rate, recombination_rate, basepairs)
     if selection: #dfAdult.sel will be updated here to same length as dfAdult_mf.pos
         dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions, cdslist)

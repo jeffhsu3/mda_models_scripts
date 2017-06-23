@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from figs.worm import Worms
-from figs.mutation import mutation_fx, mutation_at_segsite
+from figs.mutation import worms_mutation, mutation_at_segsite
 
 from IPython import embed
 
@@ -42,8 +42,8 @@ class Test_Mutation(unittest.TestCase):
         # New position should be 138 with seed
         # Mutation is in first worm and on hap1
         orig_shape = self.worms.h1['0'].shape[1]
-        worms, newpositions = mutation_fx(1, self.worms, [0.001],
-            [1e-9], [200])
+        worms, newpositions, new_pos_iix = worms_mutation(1, 
+                self.worms, [0.001], [1e-9], [200])
         self.assertEqual(len(newpositions), 
                 worms.h1['0'].shape[1] - orig_shape) 
         np.testing.assert_equal(worms.h1['0'][:, -1],
@@ -53,7 +53,7 @@ class Test_Mutation(unittest.TestCase):
     def test_multiple_mutations(self):
         # Mainly test speed and insertion orders
         orig_nsegsites = self.worms.h1['0'].shape[1]
-        worms, newpositions = mutation_fx(1, self.worms, [0.005],
+        worms, newpositions, new_pos_iix = worms_mutation(1, self.worms, [0.005],
             [1e-9], [200])
         print(orig_nsegsites)
 

@@ -147,7 +147,8 @@ def survivalbase_fx(month,
     else:pass
     dfworm.drop_worms(np.append(dieJuv, dieMF))
     #fecundity calls mutation/recombination
-    dfAdult_mf, dfworm = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
+    # fecundity should add directly into dfworm
+    df_new_worms, dfworm, new_pos = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
                                          densitydep_fec, cdslist)
 
