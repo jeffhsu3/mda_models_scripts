@@ -31,6 +31,11 @@ class Worms(object):
             self.coord = {}
             
 
+        self.ng_h1 = []
+        self.ng_h2 = []
+        self.new_positions = []
+        self.new_pos_iix = []
+
     def _merge_positions(self, loc, oworm, index):
         assert self.h1[loc].shape[1] == len(self.pos[loc])
         pos1 = np.copy(self.pos[loc])
@@ -78,9 +83,17 @@ class Worms(object):
         self.h1[loc] = self.h1[loc].copy(order='C')
         
 
+<<<<<<< HEAD
     def add_worms(self, oworms, index, 
             update=False):
         """
+=======
+
+    def add_worms(self, oworms, index, update=False):
+        """
+        Add worms from one worms object to another object
+        
+>>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
         Parameters
         ----------
         oworms : figs.worm.Worms object
@@ -91,7 +104,11 @@ class Worms(object):
         """
         if oworms.meta.shape[0] != 0 and self.meta.shape[0] !=0:
             self.meta = pd.concat([self.meta, oworms.meta.ix[index,:]],
+<<<<<<< HEAD
                     ignore_index=True)
+=======
+            ignore_index=True)
+>>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
             self.meta.reset_index(drop=True, inplace=True)
             for i in oworms.h1.keys():
                 if np.array_equal(self.pos[i],  oworms.pos[i]):
@@ -116,7 +133,10 @@ class Worms(object):
                     ignore_index=True)
             self.meta.reset_index(drop=True, inplace=True)
             print("Nothing to add")
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
 
     def drop_worms(self, index):
         if len(index) != 0 and self.meta.shape[0] != 0:
@@ -126,6 +146,10 @@ class Worms(object):
                 self.h1[i] = ndelete(self.h1[i], index, axis=0)
             for i in self.h2.keys():
                 self.h2[i] = ndelete(self.h2[i], index, axis=0)
+            for i in self.ng_h1:
+                pass
+            for i in self.ng_h2:
+                pass
         else:
             print('No worms to drop')
             pass

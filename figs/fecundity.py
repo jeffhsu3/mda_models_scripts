@@ -35,7 +35,7 @@ def fecunditybase_fx(fecund,
     cds_coordinates : [list], int
 
     Returns
-    ------
+    -------
     dfAdult_mf : df
         figs.worms object
     dfSel : df
@@ -53,20 +53,29 @@ def fecunditybase_fx(fecund,
     positive_lambda[positive_lambda < 0] = 0
     dfworm.meta.ix[old, 'fec'] = np.random.poisson(positive_lambda).astype(np.int64)
     # Sex, recombination, mutation
-    dfAdult_mf = recombination_fx(locus, dfworm, adiix, recombination_rate, basepairs)
-    dfAdult_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(dfAdult_mf.meta))
-    dfAdult_mf.meta.age = 1
-    dfAdult_mf.sel = dfworm.sel.copy()
-    dfAdult_mf.coord = dfworm.coord.copy()
+    df_new_mf = recombination_fx(locus, dfworm, adiix, recombination_rate, basepairs)
+    df_new_mf.meta.sex = np.random.choice(['M', 'F'] , size=len(df_new_mf.meta))
+    df_new_mf.meta.age = 1
+    df_new_mf.sel = dfworm.sel.copy()
+    df_new_mf.coord = dfworm.coord.copy()
 
     #### WORKING ON THIS ####################################
-    df_new_mf, new_positions, new_pos_iix = worms_mutation(locus, dfAdult_mf,
+    df_new_mf, new_positions, new_pos_iix = worms_mutation(locus, df_new_mf,
          mutation_rate, recombination_rate, basepairs)
+    df_new_mf = fitness_fx(df_new_mf, dfworm, cdslist)
+    
+    #### Add in genos into dfworm as separate list while merging in meta
+    dfworm.ng_h1.append(df_new_mf.h1)
+    dfworm.ng_h2.append(df_new_mf.h2)
+    dfworm.new_pos.append(new_positions)
+    dfworm.new_pos_iix.append(new_pos_iix)
+
+    dfworm.meta.concatenate([dfworm.meta, df_new_mf.meta])
+    from ipdb import set_trace
+    set_trace()
+
     '''
     if selection: #dfAdult.sel will be updated here to same length as dfAdult_mf.pos
         dfAdult_mf, dfworm = selection_fx(dfworm, dfAdult_mf, new_positions, cdslist)
     '''
-    df_new_mf = fitness_fx(df_new_mf, dfworm, cdslist)
-        
-    #dfworm.add_worms(dfAdult_mf, new_positions)
-    return(dfAdult_mf, dfworm, new_pos)
+    return(dfworm)

@@ -163,10 +163,15 @@ def survivalbase_fx(month,
 
 
     '''
+<<<<<<< HEAD
     ### Need to move this to function above
     new_worms = juvs['worms']
     new_indexes = juvs['indexes']
     new_positions = juvs['pos']
+=======
+
+    ### All adults in dfworm.meta and dfworm.h1 and dfworm.h2
+>>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
     if month%12 == 0:
         ##stats
         x = dfworm.meta.groupby(["village","stage"]).apply(
@@ -186,9 +191,31 @@ def survivalbase_fx(month,
     else: pass
 
 
+<<<<<<< HEAD
     #### df worm #########################
     dieJuv = kill_juvenile(dfworm, surv_Juv, increment_age=True)
     dieMF = kill_mf(dfworm, shapeMF, scaleMF, increment_age=True)
+=======
+    ##MF is weibull cdf
+    mfiix = dfworm.meta[dfworm.meta.stage == "M"].index.values
+    kill_mfrand = np.random.random(mfiix.shape[0])
+    try:
+        kill_mffxage = weibull_min.cdf(dfworm.meta.ix[mfiix].age,shapeMF,loc=0,scale=scaleMF)
+    except TypeError:
+        kill_mffxage = weibull_min.cdf(0,shapeMF,loc=0,scale=scaleMF)
+    dieMF = mfiix[np.where(kill_mfrand < kill_mffxage)]
+    dfworm.meta.ix[mfiix, 'age'] += 1
+    ##move Juv age 13 to adult age 1
+    juviix12 = dfworm.meta.ix[juviix].query('age > 12').index.values
+    if any(juviix12):
+        #reset age to adult
+        dfworm.meta.ix[juviix12,'age'] = 1
+        #increase R0net for next gen
+        dfworm.meta.ix[juviix12,'R0net'] += 1
+        dfworm.meta.ix[juviix12,'stage'] = "A"
+    else:pass
+    
+>>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
     dfworm.drop_worms(np.append(dieJuv, dieMF))
     age_juvenile(dfworm)
 
