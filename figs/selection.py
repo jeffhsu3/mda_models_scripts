@@ -77,6 +77,7 @@ def fitness_fx(worm_new,
 def selection_coefficient(dfworm, loc, new_pos, iix):
     """ Calculates DFE for new positions and updates it
     in dfworm
+
     Paremeters
     ----------
     dfworm : figs.worm.Worms object

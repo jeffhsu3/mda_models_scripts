@@ -9,6 +9,8 @@ import numpy as np
 from collections import defaultdict
 import array
 
+from figs.selection import selection_coefficient
+
 def mutation_at_segsite(newsite, loc, worms, randmf):
     iix = np.where(worms.pos[str(loc)] == newsite)
     whap = str(np.random.randint(1, 3))
@@ -54,7 +56,6 @@ def worms_mutation(locus,
          list of positions of new mutations
     '''
     new_positions = defaultdict(list)
-    new_indexs = defaultdict(list)
     nworms = worms.meta.shape[0]
     new_pos_iix = defaultdict(list)
     for loc in range(locus):
@@ -88,9 +89,10 @@ def worms_mutation(locus,
                 else:
                     new_iix = np.argmax(np.array(new_pos_iix[sloc]) > iix)
                     for t_c, new_idx in enumerate(new_pos_iix[sloc][new_iix:]):
-                        t_i = t_c + new_iix - 1
+                        t_i = t_c + new_iix  - 1
                         new_pos_iix[str(loc)][t_i] += 1
                 new_pos_iix[str(loc)].append(iix)
+                new_positions[str(loc)].append(newsite)
                 if recombination_rate[loc] == 0:
                     worms.h1[str(loc)] =\
                             np.insert(worms.h1[str(loc)],
@@ -107,8 +109,6 @@ def worms_mutation(locus,
                     ohap = getattr(worms, "h"+ whap2)[str(loc)]
                     ohap = np.insert(ohap, iix, oarray, axis=1)
                     getattr(worms, "h"+ whap2)[str(loc)] = ohap
-                new_positions[str(loc)].append(newsite)
-                new_indexs[str(loc)].append(iix)
+                    selection_coefficient(worms, sloc, newsite, iix)
         worms.pos[str(loc)] = positions
-        #assert worms.pos[str(loc)].shape[0] == dfAdult_mf.h1[str(loc)].shape[1]
     return(worms, new_positions, new_pos_iix)

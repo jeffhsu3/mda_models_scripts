@@ -154,6 +154,7 @@ def wb_sims(config_file):
     dist.extend(initial_distance_m)
     distvill = [sum(dist[:i+1]) for i in range(len(dist))]
     village=[]
+    cdslist = [surv_length, surv_position, fec_length, fec_position, dominance]
 
     if os.path.isfile("dfworm_burnin.pkl"):
         with open('dfworm_burnin.pkl', 'rb') as input:
@@ -169,7 +170,6 @@ def wb_sims(config_file):
 
     else:
         sim_time = numberGens + burn_in
-        cdslist = [surv_length, surv_position, fec_length, fec_position, dominance]
         for i in range(villages):
             village.append(Village(i,hostpopsize[i],prevalence[i],distvill[i], hours2bite[i],
                                    bitesPperson[i], bednets, bnstart[i] + burn_in, bnstop[i] + burn_in,
@@ -198,6 +198,11 @@ def wb_sims(config_file):
     L3transdict = defaultdict(list)
     R0netlist = defaultdict(list)
 
+    juvs = {'worms' : [],
+            'indexes' : [],
+            'pos' : [],
+            }
+
 ####start sims
     for month in range(1,sim_time):
         print("\nmonth is {}\n".format(month))
@@ -207,8 +212,9 @@ def wb_sims(config_file):
                                                             densitydep_uptake,
                                                             dfHost,
                                                             dfworm,
-                                                            L3transdict)
-        dfHost, dfworm, R0netlist = survfx(month,
+                                                            L3transdict,
+                                                            juvs)
+        dfHost, dfworm, juvs, R0netlist = survfx(month,
                                 village,
                                 surv_Juv,
                                 shapeMF,
@@ -228,7 +234,9 @@ def wb_sims(config_file):
                                 dfHost,
                                 dfworm,
                                 R0netlist,
-                                cdslist)
+                                cdslist,
+                                juvs)
+        ####### df worms has not added the new worms
         #print(dfworm.meta.shape[0])
         if dfworm.meta.shape[0] == 0:
             break
@@ -270,7 +278,6 @@ def wb_sims(config_file):
         pickle.dump(R0netlist, output, -1)
 
     #start stats
-    import ipdb; ipbd.set_trace()
     print("\n\ncalculating stats\n\n")
     output_tables_fx(logTime, numberGens, outstats)
 

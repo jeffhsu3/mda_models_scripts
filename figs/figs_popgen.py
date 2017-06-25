@@ -24,6 +24,8 @@ from libsequence.fst import fst
 #from .plotting import plot_hapnetwork #for mitochondrial networks on MF
 #from .plotting import plot_pairwise
 
+import multiprocessing 
+
 def site_freqspec_fx(dfworm, mon, mf, locus):
     '''calculates the site frequency spectrum. If >1 pop also does jSFS
 
@@ -96,10 +98,10 @@ def sel_trace_fx(dfworm, freqsum, locus, mf):
     return(None)
 
 def haplotype_net_fx(dfworm):
-    '''constructs haplotype network table for plotting, vcf2hap
+    '''Constructs haplotype network table for plotting, vcf2hap
 
     Parameters
-    ---------
+    ----------
     dfworm : df
         padas df with meta, h1/h2 etc ...
 
@@ -196,14 +198,19 @@ def figs2scikit_fx(dfworm, sample_size, vill, locus):
 #        mf = dfworm.meta.ix[mf][~dfworm.meta["hostidx"].isin(mf_mask[mf_mask].index.values)].index.values
 #    mf_pairs = dfworm.meta.ix[mf].groupby("hostidx").apply(lambda y: y.sample(sample_size).index.values)
 #    hostidx = [h for h in mf_pairs.keys()]
-
     return(None)
 
+'''
+def host_comb(hosts, 2):
+    combinations = lists(combinations(hosts, 2))
+    return(combinations)
+'''
+
 def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
-    '''calculates the pairwise FST between hosts
+    '''Calculates the pairwise FST between hosts
 
     Parameters
-    ---------
+    ----------
     dfworm : df
         padas df with meta, h1/h2 etc ...
     mon : int
@@ -292,6 +299,10 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
 
 #############this part is just slow, maybe parallel ??
         print("starting FST,DXY")
+        p_combinations = host_comb(hostidx)
+
+        
+
         for hostX, hostY in combinations(hostidx, 2):
             #print("fst")
             popX = np.vstack([dfworm.h1[locus][mf_pairs[hostX]], dfworm.h2[locus][mf_pairs[hostX]]])
@@ -353,12 +364,13 @@ def pairwise_div_fx(dfworm, mon, vill, basepairs, sample_size):
     return(fst_t, dxy, da)
 
 def villpopgen_fx(dfworm, outstats, vill, mon):
-    '''calculates popgen statistic for each village
+    '''Calculates popgen statistic for each village
     [basepairs, sample_size, window_length, num_windows, wb2vcf, figs2scikit]
+
     Parameters
-    ---------
+    ----------
     dfworm : df
-        padas df with meta, h1/h2 etc ...
+        figs.worm object
     mon : int
         month of logTime
     vill : int
@@ -395,16 +407,22 @@ def villpopgen_fx(dfworm, outstats, vill, mon):
         pos = dfworm.pos[locus] / seq
 #        win_size = float(outstats[2]) / float(basepairs[loc])
 #        win_step = 1.0/num_windows
-        adpop = dfworm.meta[(dfworm.meta.village == vill) & (dfworm.meta.stage == "A")].sample(sample_size).index.values
-        jvpop = dfworm.meta[(dfworm.meta.village == vill) & (dfworm.meta.stage == "J")].sample(sample_size).index.values
-        mfpop = dfworm.meta[(dfworm.meta.village == vill) & (dfworm.meta.stage == "M")].sample(sample_size).index.values
+        adpop = dfworm.meta[(dfworm.meta.village == vill)\
+                & (dfworm.meta.stage == "A")].sample(sample_size).index.values
+        jvpop = dfworm.meta[(dfworm.meta.village == vill)\
+                & (dfworm.meta.stage == "J")].sample(sample_size).index.values
+        mfpop = dfworm.meta[(dfworm.meta.village == vill)\
+                & (dfworm.meta.stage == "M")].sample(sample_size).index.values
 
         mfgeno = np.vstack([dfworm.h1[locus][mfpop], dfworm.h2[locus][mfpop]])
         jvgeno = np.vstack([dfworm.h1[locus][jvpop], dfworm.h2[locus][jvpop]])
         adgeno = np.vstack([dfworm.h1[locus][adpop], dfworm.h2[locus][adpop]])
-        mfgeno1 = [''.join(str(n) for n in y) for y in mfgeno]
-        jvgeno1 = [''.join(str(n) for n in y) for y in jvgeno]
-        adgeno1 = [''.join(str(n) for n in y) for y in adgeno]
+        import ipdb
+        ipdb.set_trace()
+        mfgeno1 = [b''.join([str(n) for n in y]) for y in mfgeno]
+        jvgeno1 = [b''.join([str(n) for n in y]) for y in jvgeno]
+        adgeno1 = [b''.join([str(n) for n in y]) for y in adgeno]
+
 
         #haplotype 1
         sdad1 = simData()
