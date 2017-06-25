@@ -30,6 +30,11 @@ class Worms(object):
         else:
             self.coord = {}
 
+        self.ng_h1 = []
+        self.ng_h2 = []
+        self.new_positions = []
+        self.new_pos_iix = []
+
     def _merge_positions(self, loc, oworm, index):
         assert self.h1[loc].shape[1] == len(self.pos[loc])
         pos1 = np.copy(self.pos[loc])
@@ -77,46 +82,45 @@ class Worms(object):
         self.h1[loc] = self.h1[loc].copy(order='C')
 
 
-def add_worms(self, oworms, index, update=False):
-    """
-    Add worms from one worms object to another object
-    
-    Parameters
-    ----------
-    oworms : figs.worm.Worms object
-        other Worms object to add worms from
-    index : int list
-        numerical index from the other Worms object to add
-    new_pos : dict of lists
-    """
-    if oworms.meta.shape[0] != 0 and self.meta.shape[0] !=0:
-        self.meta = pd.concat([self.meta, oworms.meta.ix[index,:]],
-        ignore_index=True)
-        self.meta.reset_index(drop=True, inplace=True)
-        for i in oworms.h1.keys():
-            if np.array_equal(self.pos[i],  oworms.pos[i]):
-                self.h1[i] = vstack((self.h1[i], oworms.h1[i]))
-                if i in oworms.h2.keys():
-                    self.h2[i] = vstack((self.h2[i],
-                        oworms.h2[i]))
+    def add_worms(self, oworms, index, update=False):
+        """
+        Add worms from one worms object to another object
+        
+        Parameters
+        ----------
+        oworms : figs.worm.Worms object
+            other Worms object to add worms from
+        index : int list
+            numerical index from the other Worms object to add
+        new_pos : dict of lists
+        """
+        if oworms.meta.shape[0] != 0 and self.meta.shape[0] !=0:
+            self.meta = pd.concat([self.meta, oworms.meta.ix[index,:]],
+            ignore_index=True)
+            self.meta.reset_index(drop=True, inplace=True)
+            for i in oworms.h1.keys():
+                if np.array_equal(self.pos[i],  oworms.pos[i]):
+                    self.h1[i] = vstack((self.h1[i], oworms.h1[i]))
+                    if i in oworms.h2.keys():
+                        self.h2[i] = vstack((self.h2[i],
+                            oworms.h2[i]))
+                    else:
+                        pass
                 else:
-                    pass
-            else:
-                self._merge_positions(i, oworms, index)
-    elif self.meta.shape[0] == 0 and oworms.meta.shape[0] != 0:
-        self.meta = oworms.meta
-        self.meta.reset_index(drop=True, inplace=True)
-        for i in oworms.h1.keys():
-            self.h1[i] = oworms.h1[i]
-            self.pos[i] = oworms.pos[i]
-        for i in oworms.h2.keys():
-            self.h2[i] = oworms.h2[i]
-    else:
-        self.meta = pd.concat([self.meta, oworms.meta],
-                ignore_index=True)
-        self.meta.reset_index(drop=True, inplace=True)
-        print("Nothing to add")
-
+                    self._merge_positions(i, oworms, index)
+        elif self.meta.shape[0] == 0 and oworms.meta.shape[0] != 0:
+            self.meta = oworms.meta
+            self.meta.reset_index(drop=True, inplace=True)
+            for i in oworms.h1.keys():
+                self.h1[i] = oworms.h1[i]
+                self.pos[i] = oworms.pos[i]
+            for i in oworms.h2.keys():
+                self.h2[i] = oworms.h2[i]
+        else:
+            self.meta = pd.concat([self.meta, oworms.meta],
+                    ignore_index=True)
+            self.meta.reset_index(drop=True, inplace=True)
+            print("Nothing to add")
 
     def drop_worms(self, index):
         if len(index) != 0 and self.meta.shape[0] != 0:
@@ -126,6 +130,10 @@ def add_worms(self, oworms, index, update=False):
                 self.h1[i] = ndelete(self.h1[i], index, axis=0)
             for i in self.h2.keys():
                 self.h2[i] = ndelete(self.h2[i], index, axis=0)
+            for i in self.ng_h1:
+                pass
+            for i in self.ng_h2:
+                pass
         else:
             print('No worms to drop')
             pass

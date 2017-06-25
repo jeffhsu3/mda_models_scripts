@@ -102,6 +102,8 @@ def survivalbase_fx(month,
     dfHost
 
     '''
+
+    ### All adults in dfworm.meta and dfworm.h1 and dfworm.h2
     if month%12 == 0:
         ##stats
         x = dfworm.meta.groupby(["village","stage"]).apply(lambda y: y[(y.R0net < (len(R0netlist['R0']) + 1))
@@ -135,7 +137,6 @@ def survivalbase_fx(month,
         kill_mffxage = weibull_min.cdf(0,shapeMF,loc=0,scale=scaleMF)
     dieMF = mfiix[np.where(kill_mfrand < kill_mffxage)]
     dfworm.meta.ix[mfiix, 'age'] += 1
-
     ##move Juv age 13 to adult age 1
     juviix12 = dfworm.meta.ix[juviix].query('age > 12').index.values
     if any(juviix12):
@@ -145,6 +146,7 @@ def survivalbase_fx(month,
         dfworm.meta.ix[juviix12,'R0net'] += 1
         dfworm.meta.ix[juviix12,'stage'] = "A"
     else:pass
+    
     dfworm.drop_worms(np.append(dieJuv, dieMF))
     #fecundity calls mutation/recombination
     # fecundity should add directly into dfworm
