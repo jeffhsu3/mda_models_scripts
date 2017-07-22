@@ -69,8 +69,8 @@ def fecunditybase_fx(fecund,
     dfworm.ng_h2.append(df_new_mf.h2)
     dfworm.new_pos.append(new_positions)
     dfworm.new_pos_iix.append(new_pos_iix)
-
     dfworm.meta.concatenate([dfworm.meta, df_new_mf.meta])
+    
     from ipdb import set_trace
     set_trace()
 

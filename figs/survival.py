@@ -191,11 +191,8 @@ def survivalbase_fx(month,
     else: pass
 
 
-<<<<<<< HEAD
     #### df worm #########################
     dieJuv = kill_juvenile(dfworm, surv_Juv, increment_age=True)
-    dieMF = kill_mf(dfworm, shapeMF, scaleMF, increment_age=True)
-=======
     ##MF is weibull cdf
     mfiix = dfworm.meta[dfworm.meta.stage == "M"].index.values
     kill_mfrand = np.random.random(mfiix.shape[0])
@@ -215,17 +212,8 @@ def survivalbase_fx(month,
         dfworm.meta.ix[juviix12,'stage'] = "A"
     else:pass
     
->>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
     dfworm.drop_worms(np.append(dieJuv, dieMF))
     age_juvenile(dfworm)
-
-    for i, j in zip(new_worms, new_positions):
-        dieJuv = kill_juvenile(i, surv_Juv, increment_age=True)
-        dieMF = kill_mf(i, shapeMF, scaleMF, increment_age=True)
-        i.drop_worms(np.append(dieJuv, dieMF))
-        age_juvenile(i)
-        add_only_variants(i, dfworm)
-
 
     #fecundity calls mutation/recombination
     # fecundity should add directly into dfworm

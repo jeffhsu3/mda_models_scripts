@@ -30,7 +30,6 @@ class Worms(object):
         else:
             self.coord = {}
             
-
         self.ng_h1 = []
         self.ng_h2 = []
         self.new_positions = []
@@ -83,17 +82,11 @@ class Worms(object):
         self.h1[loc] = self.h1[loc].copy(order='C')
         
 
-<<<<<<< HEAD
-    def add_worms(self, oworms, index, 
-            update=False):
-        """
-=======
 
     def add_worms(self, oworms, index, update=False):
         """
         Add worms from one worms object to another object
         
->>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
         Parameters
         ----------
         oworms : figs.worm.Worms object
@@ -103,12 +96,8 @@ class Worms(object):
         new_pos : dict of lists
         """
         if oworms.meta.shape[0] != 0 and self.meta.shape[0] !=0:
-            self.meta = pd.concat([self.meta, oworms.meta.ix[index,:]],
-<<<<<<< HEAD
+            self.meta = pd.concat([self.meta, oworms.meta.ix[index,:]], 
                     ignore_index=True)
-=======
-            ignore_index=True)
->>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
             self.meta.reset_index(drop=True, inplace=True)
             for i in oworms.h1.keys():
                 if np.array_equal(self.pos[i],  oworms.pos[i]):
@@ -133,10 +122,6 @@ class Worms(object):
                     ignore_index=True)
             self.meta.reset_index(drop=True, inplace=True)
             print("Nothing to add")
-<<<<<<< HEAD
-
-=======
->>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
 
     def drop_worms(self, index):
         if len(index) != 0 and self.meta.shape[0] != 0:
@@ -147,6 +132,7 @@ class Worms(object):
             for i in self.h2.keys():
                 self.h2[i] = ndelete(self.h2[i], index, axis=0)
             for i in self.ng_h1:
+
                 pass
             for i in self.ng_h2:
                 pass
@@ -164,35 +150,12 @@ class Worms(object):
         if increment_age:
             self.meta.loc[juviix, 'age'] += 1
         else: pass
+        # Dataframe mapppning meta to each list
         return(dieJuv)
 
     def age_worms(self, surv_Juv, shapeMF, scaleMF):
-        for i, j in zip(self.new_worms_geno, self.new_positions_ix):
-            dieJuv = self._kill_juvenile(i, surv_Juv, increment_age=True)
-            dieMF = self._kill_mf(i, shapeMF, scaleMF, increment_age=True)
-            i.drop_worms(np.append(dieJuv, dieMF))
-            #age_juvenile(i)
-            #add_only_variants(i, self)
-
-
-    def calc_allele_frequencies(self, host=None, village=None, loci=None):
-        """ Calculate allele frequencies
-        """
-        if loci == None:
-            loci = self.h1.keys()
-        else:
-            loci = loci
-        all_loci_shape = [self.h1[i].shape[1] for i in loci]
-        allele_freqs = np.zeros(np.sum(all_loci_shape), dtype=np.float64)
-        c=0
-        nworms = self.meta.shape[0]
-        for loc in loci:
-            nsites = self.h1[loc].shape[1]
-            if loc in self.h2.keys():
-                allele_freqs[c:c+nsites] = np.sum(self.h1[loc] +\
-                        self.h2[loc], dtype=np.float64, axis=0)/2*nworms
-            else:
-                allele_freqs[c: c+nsites] = np.sum(self.h1[loc],
-                        dtype=np.float64, axis=0)/nworms
-            c += self.h1[loc].shape[1]
-        return(allele_freqs)
+        dieJuv = self._kill_juvenile(surv_Juv, increment_age=True)
+        dieMF = self._kill_mf(shapeMF, scaleMF, increment_age=True)
+        self.drop_worms(np.append(dieJuv, dieMF))
+        #age_juvenile(i)
+        #add_only_variants(i, self)
