@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/uSr/bin/env python2
 # -*- coding: utf-8 -*-
 """
     FiGS Copyright (C) 2017 Scott T. Small
@@ -34,35 +34,6 @@ def kill_adults(dfworm, dfHost, month, shapeAdult, scaleAdult,
             dfworm.meta[~dfworm.meta.hostidx.isin(diehost)].index.values)
     dfworm.drop_worms(dead_worms)
     return(dfHost, dfworm)
-
-
-def kill_juvenile(dfworm, surv_Juv, increment_age=False):
-    ''' Returns bool of worms to kill. Also increments age
-    '''
-    juviix = dfworm.meta[dfworm.meta.stage == "J"].index.values
-    kill_juvrand = np.random.random(juviix.shape[0])
-    dieJuv = juviix[np.where(kill_juvrand > surv_Juv)]
-    if increment_age:
-        dfworm.meta.loc[juviix, 'age'] += 1
-    else: pass
-    return(dieJuv)
-
-
-def kill_mf(dfworm, shapeMF, scaleMF, increment_age=False):
-    ''' Kills MF
-    '''
-    mfiix = dfworm.meta[dfworm.meta.stage == "M"].index.values
-    kill_mfrand = np.random.random(mfiix.shape[0])
-    try:
-        kill_mffxage = weibull_min.cdf(dfworm.meta.ix[mfiix].age,
-                shapeMF, loc=0, scale=scaleMF)
-    except TypeError:
-        kill_mffxage = weibull_min.cdf(0, shapeMF, loc=0, scale=scaleMF)
-    dieMF = mfiix[np.where(kill_mfrand < kill_mffxage)]
-    if increment_age:
-        dfworm.meta.ix[mfiix, 'age'] += 1
-    else: pass
-    return(dieMF)
 
 
 def age_juvenile(dfworm):
@@ -163,15 +134,6 @@ def survivalbase_fx(month,
 
 
     '''
-<<<<<<< HEAD
-    ### Need to move this to function above
-    new_worms = juvs['worms']
-    new_indexes = juvs['indexes']
-    new_positions = juvs['pos']
-=======
-
-    ### All adults in dfworm.meta and dfworm.h1 and dfworm.h2
->>>>>>> 6acf56ffbb1036d8af8b29470f7890bf0e09abf5
     if month%12 == 0:
         ##stats
         x = dfworm.meta.groupby(["village","stage"]).apply(

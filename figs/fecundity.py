@@ -58,11 +58,15 @@ def fecunditybase_fx(fecund,
     df_new_mf.meta.age = 1
     df_new_mf.sel = dfworm.sel.copy()
     df_new_mf.coord = dfworm.coord.copy()
+    df_new_mf.ng_index = len(dfworm.ng_h1) + 1
 
     #### WORKING ON THIS ####################################
     df_new_mf, new_positions, new_pos_iix = worms_mutation(locus, df_new_mf,
          mutation_rate, recombination_rate, basepairs)
     df_new_mf = fitness_fx(df_new_mf, dfworm, cdslist)
+
+    from IPython import embed
+    embed()
     
     #### Add in genos into dfworm as separate list while merging in meta
     dfworm.ng_h1.append(df_new_mf.h1)

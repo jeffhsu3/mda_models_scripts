@@ -5,9 +5,12 @@ from numpy import vstack, hstack
 import numpy as np
 import pandas as pd
 
+from scipy.stats import weibull_min
+
 class Worms(object):
     def __init__(self, meta, haplotype1=None, haplotype2=None,
-            positions = None, selection=None, cds_coords=None):
+            positions=None, selection=None, cds_coords=None,
+            ng_index=None):
         self.meta = meta
         if haplotype1:
             self.h1 = haplotype1
@@ -29,7 +32,12 @@ class Worms(object):
             self.coord = cds_coords
         else:
             self.coord = {}
-            
+        '''
+        if ng_index:
+            self.meta['ng_index'] = ng_index
+        else:
+            self.meta['ng_index'] = np.repeat(np.nan, self.meta.shape[0])
+        '''
         self.ng_h1 = []
         self.ng_h2 = []
         self.new_positions = []
@@ -124,6 +132,7 @@ class Worms(object):
             print("Nothing to add")
 
     def drop_worms(self, index):
+        """
         if len(index) != 0 and self.meta.shape[0] != 0:
             self.meta.drop(index, inplace=True)
             self.meta.reset_index(drop=True, inplace=True)
@@ -132,13 +141,51 @@ class Worms(object):
             for i in self.h2.keys():
                 self.h2[i] = ndelete(self.h2[i], index, axis=0)
             for i in self.ng_h1:
-
-                pass
+                for j in i.keys():
+                    i[j] = ndelete(i[j], index, axis=0)
             for i in self.ng_h2:
-                pass
+                for j in i.ng_h2.keys():
+                    i[j] = ndelete(i[j], index, axis=0)
         else:
             print('No worms to drop')
             pass
+        """
+        # Reimplantations
+        # Alpha sum
+        index = np.array(index)
+        if len(index) != 0 and self.meta.shape[0] !=0:
+            adults = self.meta.ng_index.isnull().sum()
+            shift = self.meta.ng_index.value_counts().cumsum() + adults
+            ad_ix = index[index <= adults]
+            for i in self.h1.keys():
+                self.h1[i] = ndelete(self.h1[i], ad_ix, axis=0)
+            for i in self.h2.keys():
+                self.h2[i] = ndelete(self.h2[i], ad_ix, axis=0)
+            for j, k in enumerate(len(self.ng_h1)):
+
+                pass
+            for j, k in enumerate(len(self.ng_h2)):
+                pass
+            self.meta.drop(index, inplace=True)
+            self.meta.reset_index(drop=True, inplace=True)
+        
+
+
+
+
+    def _kill_mf(self, shapeMF, scaleMF, increment_age=True):
+        mfiix = self.meta[self.meta.stage == "M"].index.values
+        kill_mfrand = np.random.random(mfiix.shape[0])
+        try:
+            kill_mffxage = weibull_min.cdf(self.meta.ix[mfiix].age,
+                    shapeMF, loc=0, scale=scaleMF)
+        except TypeError:
+            kill_mffxage = weibull_min.cdf(0, shapeMF, loc=0, scale=scaleMF)
+        dieMF = mfiix[np.where(kill_mfrand < kill_mffxage)]
+        if increment_age:
+            self.meta.ix[mfiix, 'age'] += 1
+        else: pass
+        return(dieMF)
 
 
     def _kill_juvenile(self, surv_Juv, increment_age=False):
