@@ -62,9 +62,8 @@ class Test_Worms(unittest.TestCase):
             haplotype2={'1': hap2}, positions=positions)
         new_index = [np.nan, np.nan, np.nan, np.nan, np.nan, 0, 0]
         worms.meta['ng_index'] = new_index
-        worms.ng_h1.append(ng_h1)
-        worms.ng_h2.append(ng_h2)
-        print(worms.meta)
+        worms.ng_h1.append({'0': np.array([[0, 1], [3,3]]), '1': ng_h1})
+        worms.ng_h2.append({'1': ng_h2})
         positions_2 = {
                 '0' : np.array([10, 30], dtype=np.uint64),
                 '1' : np.array([1, 5, 29, 100], dtype=np.int64)
@@ -73,7 +72,6 @@ class Test_Worms(unittest.TestCase):
                 haplotype1={'0' : np.copy(loc0), '1' : np.copy(hap1)},
             haplotype2={'1': np.copy(hap2)}, 
             positions=positions_2)
-        print(worms.meta)
         self.worms = worms
         self.worms2 = worms2 
 
@@ -90,11 +88,12 @@ class Test_Worms(unittest.TestCase):
 
     def test_drop_worms_regular(self):
         self.worms2.drop_worms([0, 1])
-        embed()
         np.testing.assert_equal(self.worms2.h1['1'].shape[0], 3)
         #np.testing.assert_equal(self.worms2.meta.shape[0], 3)
 
     def test_drop_worms_mfs(self):
+        self.worms.drop_worms([0, 6])
+        embed()
         pass
 
 

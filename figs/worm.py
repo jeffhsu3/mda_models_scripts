@@ -155,17 +155,26 @@ class Worms(object):
         index = np.array(index)
         if len(index) != 0 and self.meta.shape[0] !=0:
             adults = self.meta.ng_index.isnull().sum()
-            shift = self.meta.ng_index.value_counts().cumsum() + adults
+            shift = self.meta.ng_index.value_counts().values
+            shift = np.insert(shift, 0, adults)
+            shift = np.cumsum(shift)
             ad_ix = index[index <= adults]
             for i in self.h1.keys():
                 self.h1[i] = ndelete(self.h1[i], ad_ix, axis=0)
             for i in self.h2.keys():
                 self.h2[i] = ndelete(self.h2[i], ad_ix, axis=0)
-            for j, k in enumerate(len(self.ng_h1)):
-
-                pass
-            for j, k in enumerate(len(self.ng_h2)):
-                pass
+            for j, k in enumerate(self.ng_h1):
+                mf_ix = index[np.logical_and(index > shift[j], 
+                    index < shift[j+1])] - shift[j] 
+                print(mf_ix)
+                for i in k.keys():
+                    k[i] = ndelete(k[i], mf_ix, axis=0)
+            for j, k in enumerate(self.ng_h2):
+                mf_ix = index[np.logical_and(index > shift[j], 
+                    index <= shift[j+1])] 
+                print(mf_ix)
+                for i in k.keys():
+                    k[i] = ndelete(k[i], mf_ix, axis=0)
             self.meta.drop(index, inplace=True)
             self.meta.reset_index(drop=True, inplace=True)
         
