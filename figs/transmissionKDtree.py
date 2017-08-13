@@ -12,7 +12,6 @@ import random
 import pickle
 import numpy as np
 from scipy.spatial import cKDTree
-import math
 #import warnings
 #warnings.simplefilter("error", pd.core.common.SettingWithCopyWarning)
 from .agehost import agehost_fx
@@ -27,7 +26,6 @@ def vectorbite_fx(vill,
                   avgMF):
 
     '''Counts the number of successful infectious mosquito bites
-
     Parameters
     --------
     bitesPperson : int
@@ -87,9 +85,7 @@ def vectorbite_fx(vill,
        mfBlood = avgMF / 50.0
        # 0.414 is proportion of  L3 that leave mosquito per bite
        # 0.32 proportion of L3 that make it into the host
-       L3trans = round(infbites * (4.395 * ((1 -\
-               math.exp( -1* (0.055 * mfBlood / 4.395))) ** 2)) *\
-               (0.414 * 0.32))
+       L3trans = round(infbites * (4.395 * ((1 - math.exp( -1* (0.055 * mfBlood / 4.395))) ** 2)) * (0.414 * 0.32))
     else:
        # 0.414 is proportion of  L3 that leave mosquito per bite
        # 0.32 proportion of L3 that make it into the host
@@ -101,7 +97,6 @@ def new_infection_fx(dispersal,
                      mfhostidx,
                      dfHost):
     '''A transmission event infecting a naive host
-
     Parameters
     ----------
     dispersal: float
@@ -110,7 +105,6 @@ def new_infection_fx(dispersal,
         row of transmitted MF
     dfHost: df
         host dataframe
-
     Returns
     ------
     dfHost: df
@@ -154,47 +148,6 @@ def new_infection_fx(dispersal,
     #setting with enlargement
     dfHost.ix[dfHost.index[-1] + 1] = newhostlist[0]
     return(dfHost, new_hostidx)
-
-
-def temp_function(dfworm, transMF, new_hostidx, hi,  dispersal=0):
-    """
-    hi : dictionary
-       host info
-    """
-    tcount = ''
-    transMFidx = dfworm.meta.ix[transMF].hostidx.values
-    transMFhostidx = [hi['dfHost'].query('hostidx in @x').index.values \
-            for x in transMFidx]
-
-    for mfhostidx, transhostidx in zip(transMFidx, transMFhostidx):
-        if mfhostidx != tcount:
-            transhost = hi['tree'].query_ball_point(
-                    hi['dfHost'].ix[transhostidx[0]].coordinates, 
-                    dispersal, n_jobs=-1)
-            tcount = mfhostidx
-        if hi['infhost'] < hi['hostpopsize']:
-             prob_newinfection = 1.0 / (len(transhost) + 1)
-        else: #everyone is already infected
-             prob_newinfection = 0
-        trand = np.random.random()
-        if trand < prob_newinfection:
-            hi['dfHost'], rehostidx = new_infection_fx(dispersal, 
-                    mfhostidx, hi['dfHost'])
-            new_hostidx.append(rehostidx)
-            #new host so have to resort and rebuild KDTree
-            hi['hostcoords'] = np.concatenate([hi['hostcoords'], 
-                [hi['dfHost'].ix[hi['dfHost'].index[-1]].coordinates]])
-            hi['tree'] = cKDTree(hi['hostcoords'])
-            tcount = ''
-            hi['infhost'] += 1
-        else:
-            try:
-                rehostidx = np.random.choice(transhost)
-                new_hostidx.append(hi['dfHost'].ix[rehostidx,'hostidx'])
-            except:
-                import ipdb; ipdb.set_trace()
-    return(tcount, new_hostidx)
-
 #@profile
 def transmission_fx(month,
                     village,
@@ -202,10 +155,8 @@ def transmission_fx(month,
                     densitydep_uptake,
                     dfHost,
                     dfworm,
-                    L3transdict, 
-                    juvs):
+                    L3transdict):
     '''Transmission events resolved as either reinfection or new infection
-
     Parameters
     --------
     villages : int
@@ -232,12 +183,18 @@ def transmission_fx(month,
         current time, month
     dfHost: df
          chooses the donating and accepting hosts for transmission
-    juvs: dict
-
+    dfMF : df
+         donating MF genotype to transmit
+    dfJuv : df
+         donated MF move to Juvenille age class
     Returns
     ------
-    dfworm : figs.worm.Worms object
-        updated object 
+    dfJuv : df
+        all new juv are age class 0
+    dfMF : df
+        removes MF that were transmitted
+    dfHost : df
+        in the case of newinfection, new host
     L3trans : int
         number of transmitted MF
     '''
@@ -248,77 +205,56 @@ def transmission_fx(month,
     dfHost.reset_index(inplace=True, drop=True)
     dispersal = 2 * sigma
     new_hostidx = []
+    new_juv = []
     trans_t = []
     prev_t = []
     hostcoords = np.vstack(dfHost.coordinates)
     tree = cKDTree(hostcoords)
-    new_juv = []
-
     for vill in range(len(village)):
+        mfiix_vill = dfworm.meta[(dfworm.meta["stage"] == "M")\
+                & (dfworm.meta["village"] == vill)].index.values
         infhost = (dfHost.village == vill).sum()
         prev = infhost / float(village[vill].hostpopsize)
         prev_t.append(prev)
-        
-        mfmany = []
-        L3_weight_factors = []
-        chosen_mfs = []
-
-        ####### Original Worm #######################################
-        mfiix_vill = dfworm.meta[(dfworm.meta["stage"] == "M")\
-                & (dfworm.meta["village"] == vill)].index.values
-        L3_weight_factors.append(mfiix_vill.shape[0])
-
-        for mfs in juvs['worms']:
-            mfmany.append(mfs.meta.query(
-            "stage=='M' & village==@vill").index.values)
-            L3_weight_factors.append(mfiix_vill.shape[0])
-        
-        avgMF = sum(L3_weight_factors)/float(infhost)
+        avgMF = mfiix_vill.shape[0]/float(infhost)
         L3trans = vectorbite_fx(vill, prev, month, village, densitydep_uptake, avgMF)
         trans_t.append(L3trans)
         print("village is %i transmitted is %i" %(vill, L3trans))
         if L3trans != 0:
-            if L3trans > sum(L3_weight_factors):  #more transmision events than possible MF
+            if L3trans > mfiix_vill.shape[0]:  #more transmision events than possible MF
                 transMF = mfiix_vill
-                chosen_mfs = mfmany
             else:
-                transMF = np.random.choice(mfiix_vill,
-                        math.ceil(L3_weight_factors[0]/sum(L3_weight_factors)*L3trans), 
-                        replace=False)
-                for iix, mfs in enumerate(mfmany):
-                    c_mf = np.random.choice(mfs, 
-                            math.ceil(L3_weight_factors[iix
-                                +1]/sum(L3_weight_factors)*L3trans),
-                            replace=False)
-                    c_mf.sort()
-                    chosen_mfs.append(c_mf)
+                transMF = np.random.choice(mfiix_vill, L3trans, replace=False)
             transMF.sort()
             new_juv.extend(transMF)
-            host_info = {'dfHost': dfHost, 
-                         'infhost': infhost,
-                         'hostcoords': hostcoords,
-                         'tree': tree,
-                         'hostpopsize': village[vill].hostpopsize 
-                         }
-
-            tcount, new_hostidx = temp_function(dfworm, transMF,
-                    new_hostidx, host_info, dispersal=dispersal)
-
-            '''
-            if len(chosen_mfs) >= 1:
-                import ipdb
-                ipdb.set_trace()
-            '''
-
-            for mfs, tmf in zip(juvs['worms'], chosen_mfs):
-                new_hostidx_t = []
-                tcount, new_hostidx_t =temp_function(mfs, tmf, 
-                        new_hostidx_t,  
-                        host_info,
-                        dispersal=dispersal)
-                mfs.meta.ix[tmf, 'stage'] = "J"
-                mfs.meta.ix[tmf, 'hostidx'] = new_hostidx_t
-
+            transMFidx = dfworm.meta.ix[transMF].hostidx.values
+            transMFhostidx = [dfHost.query('hostidx in @x').index.values for x in transMFidx]
+            tcount = ''
+            for mfhostidx, transhostidx in zip(transMFidx, transMFhostidx):
+                if mfhostidx != tcount:
+                    transhost = tree.query_ball_point(dfHost.ix[transhostidx[0]].coordinates, 
+                            dispersal, n_jobs=-1)
+                    tcount = mfhostidx
+                if infhost < village[vill].hostpopsize:
+                     prob_newinfection = 1.0 / (len(transhost) + 1)
+                else: #everyone is already infected
+                     prob_newinfection = 0
+                trand = np.random.random()
+                if trand < prob_newinfection:
+                    dfHost, rehostidx = new_infection_fx(dispersal, mfhostidx, dfHost)
+                    new_hostidx.append(rehostidx)
+                    #new host so have to resort and rebuild KDTree
+                    hostcoords = np.concatenate([hostcoords, 
+                        [dfHost.ix[dfHost.index[-1]].coordinates]])
+                    tree = cKDTree(hostcoords)
+                    tcount = ''
+                    infhost += 1
+                else:
+                    try:
+                        rehostidx = np.random.choice(transhost)
+                        new_hostidx.append(dfHost.ix[rehostidx,'hostidx'])
+                    except:
+                        import ipdb; ipdb.set_trace()
         else:
             print("dfMF is empty")
     L3transdict['prev'].append(prev_t)

@@ -32,18 +32,55 @@ class Worms(object):
             self.coord = cds_coords
         else:
             self.coord = {}
-        '''
         if ng_index:
             self.meta['ng_index'] = ng_index
         else:
             self.meta['ng_index'] = np.repeat(np.nan, self.meta.shape[0])
-        '''
         self.ng_h1 = []
         self.ng_h2 = []
-        self.new_positions = []
+        self.ng_pos = []
+        self.new_pos= []
         self.new_pos_iix = []
 
-    def _merge_positions(self, loc, oworm, index):
+    def _merge_positions_2(self, loc, oh1, oh2, pos):
+        """
+        """
+        #assert(len(self.pos[loc]) > oworm.shape[1])
+        # Equalize both
+        pos1 = np.copy(self.pos[loc])
+        pos2 = pos
+        m1 = np.setdiff1d(pos1, pos2)
+        m2 = np.setdiff1d(pos2, pos1)
+        n1 = self.h1[loc].shape[0]
+        n2 = oh1.shape[0]
+        iix = np.searchsorted(self.pos[loc], m2)
+        iixf = [i for i in range(len(pos1) + len(m2)) if i not in iix]
+        iixf.extend(iix)
+        try:
+            self.h2[loc] = hstack((self.h2[loc],
+                np.zeros((n1, len(m2)), dtype=np.uint8)))
+            self.h2[loc] = self.h2[loc][:, iixf]
+        except KeyError:
+            pass
+        oh1 = hstack((oh1, 
+            np.zeros((n2, len(m1)), dtype=np.uint8)))
+        iix = np.searchsorted(pos, m1)
+        iixf = [i for i in range(len(pos2) + len(m1)) if i not in iix]
+        iixf.extend(iix)
+        oh1 = oh1[:, iixf]
+        assert oh1.shape[1] == self.h1[loc].shape[1]
+        self.h1[loc] = vstack((self.h1[loc], oh1))
+        try:
+            oh2 = hstack((oh2,
+                np.seros((n2, len(m1)), dtype=np.uint8)))
+            oh2 = oh2[:, iixf]
+            self.h2[loc] = vstack((self.h2[loc], oh2))
+            self.h2[loc] = self.h2[loc].copy(order='C')
+        except KeyError:
+            pass
+        self.h1[loc] = self.h1[loc].copy(order='C')
+
+    def _merge_positions(self, loc, oh1, oh2, index):
         assert self.h1[loc].shape[1] == len(self.pos[loc])
         pos1 = np.copy(self.pos[loc])
         pos2 = np.copy(oworm.pos[loc])
@@ -51,7 +88,6 @@ class Worms(object):
         m2 = np.setdiff1d(pos2, pos1)
         n1 = self.h1[loc].shape[0]
         n2 = oworm.h1[loc].shape[0]
-
         self.h1[loc] = hstack((self.h1[loc],
             np.zeros((n1, len(m2)), dtype=np.uint8)))
         iix = np.searchsorted(self.pos[loc], m2)
@@ -88,10 +124,42 @@ class Worms(object):
         except KeyError:
             pass
         self.h1[loc] = self.h1[loc].copy(order='C')
-        
 
 
-    def add_worms(self, oworms, index, update=False):
+    def _prune_genotypes(self, ng_index):
+        ipos = self.new_pos[int(ng_index)]
+        i = self.new_pos_iix[int(ng_index)]
+        for loc in i.keys():
+            iix = i[loc]
+            to_remove = np.all(self.ng_h1[ng_index][loc][:, iix]==0, axis=0)
+            to_delete = iix[to_remove]
+            ndelete(self.ng_h1[ng_index][loc], to_delete, axis=0)
+            i[loc] = [x for (x, v) in zip(iix, to_remove) if v]
+            ipos[loc] = [x for (x, v) in zip(ipos[loc], to_remove) if v]
+        self.new_pos_iix[int(ng_index)] = i
+        self.new_pos[int(ng_index)] = ipos
+
+
+    def _add_worms(self, ng_index):
+        """
+        """
+        h1 = self.ng_h1[ng_index]
+        h2 = self.ng_h2[ng_index]
+        for loc in h1.keys():
+            opos = self.ng_pos[ng_index][loc]
+            #new_pos = self.new_pos[ng_index][loc]
+            if opos == self.pos[loc]:
+                self.h1[loc] = vstack(self.h1[loc], h1)
+            else:
+                self._merge_positions_2(loc, h1, h2, opos)
+        # Save memory
+        self.ng_h1[ng_index] = None
+        self.ng_h2[ng_index] = None
+        self.new_pos[ng_index] = None
+        self.ng_pos[ng_index] = None
+
+
+    def add_worms(self, oworms=None, index=None, update=False):
         """
         Add worms from one worms object to another object
         
@@ -166,52 +234,45 @@ class Worms(object):
             for j, k in enumerate(self.ng_h1):
                 mf_ix = index[np.logical_and(index > shift[j], 
                     index < shift[j+1])] - shift[j] 
-                print(mf_ix)
                 for i in k.keys():
                     k[i] = ndelete(k[i], mf_ix, axis=0)
             for j, k in enumerate(self.ng_h2):
                 mf_ix = index[np.logical_and(index > shift[j], 
                     index <= shift[j+1])] 
-                print(mf_ix)
                 for i in k.keys():
                     k[i] = ndelete(k[i], mf_ix, axis=0)
             self.meta.drop(index, inplace=True)
             self.meta.reset_index(drop=True, inplace=True)
+
+
+    def age_worms(self):
+        # Move juveniles to age l3 to adult age 1
+        juviix12 = self.meta.query('(age > 12) & (stage == "J")').index.values
+        self.meta.loc[juviix12, 'stage'] = "A"
+        self.meta.loc[juviix12, 'R0net'] += 1
+        self.meta.loc[juviix12, 'age'] = 1
+        # Run specialized addworms here
+        # ADD in juveniles to main haplotypes
+        for i in self.meta.loc[juviix12, 'ng_index'].unique():
+            print('Pruning: ')
+            print(i)
+            self._prune_genotypes(i)
+            self._add_worms(i)
+            self.meta.loc[self.meta.ng_index == i, 'ng_index'] = np.nan
+
         
 
 
+    def _partial_add(self, other_worms, new_positions, new_pos_iix):
+        """
+        """
+        other_worms.meta['ng_index'] = np.repeat(len(self.ng_h1), other_worms.meta.shape[0])
+        self.ng_h1.append(other_worms.h1)
+        self.ng_h2.append(other_worms.h2)
+        self.new_pos.append(new_positions)
+        self.ng_pos.append(other_worms.pos)
+        self.new_pos_iix.append(new_pos_iix)
+        self.meta = pd.concat([self.meta, other_worms.meta])
 
 
-    def _kill_mf(self, shapeMF, scaleMF, increment_age=True):
-        mfiix = self.meta[self.meta.stage == "M"].index.values
-        kill_mfrand = np.random.random(mfiix.shape[0])
-        try:
-            kill_mffxage = weibull_min.cdf(self.meta.ix[mfiix].age,
-                    shapeMF, loc=0, scale=scaleMF)
-        except TypeError:
-            kill_mffxage = weibull_min.cdf(0, shapeMF, loc=0, scale=scaleMF)
-        dieMF = mfiix[np.where(kill_mfrand < kill_mffxage)]
-        if increment_age:
-            self.meta.ix[mfiix, 'age'] += 1
-        else: pass
-        return(dieMF)
 
-
-    def _kill_juvenile(self, surv_Juv, increment_age=False):
-        ''' Returns bool of worms to kill. Also increments age
-        '''
-        juviix = self.meta[self.meta.stage == "J"].index.values
-        kill_juvrand = np.random.random(juviix.shape[0])
-        dieJuv = juviix[np.where(kill_juvrand > surv_Juv)]
-        if increment_age:
-            self.meta.loc[juviix, 'age'] += 1
-        else: pass
-        # Dataframe mapppning meta to each list
-        return(dieJuv)
-
-    def age_worms(self, surv_Juv, shapeMF, scaleMF):
-        dieJuv = self._kill_juvenile(surv_Juv, increment_age=True)
-        dieMF = self._kill_mf(shapeMF, scaleMF, increment_age=True)
-        self.drop_worms(np.append(dieJuv, dieMF))
-        #age_juvenile(i)
-        #add_only_variants(i, self)

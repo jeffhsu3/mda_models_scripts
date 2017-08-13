@@ -84,7 +84,7 @@ def survivalbase_fx(month,
                     dfworm,
                     R0netlist,
                     cdslist, 
-                    juvs):
+                    ):
     '''
     Base survival function
     
@@ -153,33 +153,29 @@ def survivalbase_fx(month,
     else: pass
 
 
-    #### df worm #########################
-    dieJuv = kill_juvenile(dfworm, surv_Juv, increment_age=True)
+    juviix = dfworm.meta[dfworm.meta.stage == "J"].index.values
+    kill_juvrand = np.random.random(juviix.shape[0])
+    dieJuv = juviix[np.where(kill_juvrand > surv_Juv)]
+    dfworm.meta.ix[juviix,'age'] += 1
     ##MF is weibull cdf
     mfiix = dfworm.meta[dfworm.meta.stage == "M"].index.values
     kill_mfrand = np.random.random(mfiix.shape[0])
     try:
-        kill_mffxage = weibull_min.cdf(dfworm.meta.ix[mfiix].age,shapeMF,loc=0,scale=scaleMF)
+        kill_mffxage = weibull_min.cdf(dfworm.meta.ix[mfiix].age,
+                shapeMF, loc=0, scale=scaleMF)
     except TypeError:
-        kill_mffxage = weibull_min.cdf(0,shapeMF,loc=0,scale=scaleMF)
+        kill_mffxage = weibull_min.cdf(0, shapeMF, loc=0, scale=scaleMF)
+    import ipdb
+    ipdb.set_trace()
     dieMF = mfiix[np.where(kill_mfrand < kill_mffxage)]
     dfworm.meta.ix[mfiix, 'age'] += 1
     ##move Juv age 13 to adult age 1
-    juviix12 = dfworm.meta.ix[juviix].query('age > 12').index.values
-    if any(juviix12):
-        #reset age to adult
-        dfworm.meta.ix[juviix12,'age'] = 1
-        #increase R0net for next gen
-        dfworm.meta.ix[juviix12,'R0net'] += 1
-        dfworm.meta.ix[juviix12,'stage'] = "A"
-    else:pass
     
     dfworm.drop_worms(np.append(dieJuv, dieMF))
-    age_juvenile(dfworm)
-
+    dfworm.age_worms()
     #fecundity calls mutation/recombination
     # fecundity should add directly into dfworm
-    df_new_worms, dfworm, new_pos = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
+    dfworm = fecunditybase_fx(fecund, dfworm, locus, mutation_rate,
                                          recombination_rate, basepairs, selection,
                                          densitydep_fec, cdslist)
 

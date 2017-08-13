@@ -22,7 +22,7 @@ from figs.worm import Worms
 import figs.wbsims_initialize as wbinit
 import figs.transmissionKDtree as trans
 from figs.village import Village
-from figs.figs2stats import output_tables_fx
+#from figs.figs2stats import output_tables_fx
 #import figs.figs2stats as figstats
 
 def wb_sims(config_file):
@@ -198,10 +198,6 @@ def wb_sims(config_file):
     L3transdict = defaultdict(list)
     R0netlist = defaultdict(list)
 
-    juvs = {'worms' : [],
-            'indexes' : [],
-            'pos' : [],
-            }
 
 ####start sims
     for month in range(1,sim_time):
@@ -213,8 +209,8 @@ def wb_sims(config_file):
                                                             dfHost,
                                                             dfworm,
                                                             L3transdict,
-                                                            juvs)
-        dfHost, dfworm, juvs, R0netlist = survfx(month,
+                                                            )
+        dfHost, dfworm, R0netlist = survfx(month,
                                 village,
                                 surv_Juv,
                                 shapeMF,
@@ -235,7 +231,7 @@ def wb_sims(config_file):
                                 dfworm,
                                 R0netlist,
                                 cdslist,
-                                juvs)
+                                )
         ####### df worms has not added the new worms
         #print(dfworm.meta.shape[0])
         if dfworm.meta.shape[0] == 0:
@@ -279,7 +275,7 @@ def wb_sims(config_file):
 
     #start stats
     print("\n\ncalculating stats\n\n")
-    output_tables_fx(logTime, numberGens, outstats)
+    #output_tables_fx(logTime, numberGens, outstats)
 
     return(seed, "Selection is {}\nMDA is {}\nFitness is {}".format(selection, mda, fitness))
 

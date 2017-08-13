@@ -72,6 +72,9 @@ class Test_Kill_Adult_Worms(unittest.TestCase):
         newhost = kill_adults(self.worms, self.hosts, 12, 2, 2, 2)
         embed()
 
+    def test_mda_survival(self):
+        pass
+
 
 
 if __name__ == '__main__':
