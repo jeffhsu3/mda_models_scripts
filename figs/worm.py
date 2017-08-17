@@ -56,28 +56,43 @@ class Worms(object):
         iix = np.searchsorted(self.pos[loc], m2)
         iixf = [i for i in range(len(pos1) + len(m2)) if i not in iix]
         iixf.extend(iix)
+        self.h1[loc] = hstack((self.h1[loc],
+            np.zeros((n1, len(m2)), dtype=np.uint8)))
+        self.h1[loc] = self.h1[loc][:, iixf]
         try:
             self.h2[loc] = hstack((self.h2[loc],
                 np.zeros((n1, len(m2)), dtype=np.uint8)))
             self.h2[loc] = self.h2[loc][:, iixf]
         except KeyError:
             pass
+        
+        self.pos[loc] = np.concatenate((pos1, m2))
+        self.pos[loc] = self.pos[loc][iixf]
+
         oh1 = hstack((oh1, 
             np.zeros((n2, len(m1)), dtype=np.uint8)))
         iix = np.searchsorted(pos, m1)
         iixf = [i for i in range(len(pos2) + len(m1)) if i not in iix]
         iixf.extend(iix)
         oh1 = oh1[:, iixf]
-        assert oh1.shape[1] == self.h1[loc].shape[1]
+        import ipdb
+        ipdb.set_trace()
+        try:
+            assert oh1.shape[1] == self.h1[loc].shape[1]
+        except AssertionError:
+            import ipdb
+            ipdb.set_trace()
         self.h1[loc] = vstack((self.h1[loc], oh1))
         try:
             oh2 = hstack((oh2,
-                np.seros((n2, len(m1)), dtype=np.uint8)))
+                np.zeros((n2, len(m1)), dtype=np.uint8)))
             oh2 = oh2[:, iixf]
             self.h2[loc] = vstack((self.h2[loc], oh2))
             self.h2[loc] = self.h2[loc].copy(order='C')
         except KeyError:
             pass
+        except ValueError:
+            print(loc)
         self.h1[loc] = self.h1[loc].copy(order='C')
 
     def _merge_positions(self, loc, oh1, oh2, index):
@@ -140,23 +155,25 @@ class Worms(object):
         self.new_pos[int(ng_index)] = ipos
 
 
-    def _add_worms(self, ng_index):
+    def _add_worms(self, ng_index, wormsindex):
         """
         """
-        h1 = self.ng_h1[ng_index]
-        h2 = self.ng_h2[ng_index]
-        for loc in h1.keys():
+        for loc in self.h1.keys():
             opos = self.ng_pos[ng_index][loc]
             #new_pos = self.new_pos[ng_index][loc]
-            if opos == self.pos[loc]:
-                self.h1[loc] = vstack(self.h1[loc], h1)
-            else:
-                self._merge_positions_2(loc, h1, h2, opos)
-        # Save memory
-        self.ng_h1[ng_index] = None
-        self.ng_h2[ng_index] = None
-        self.new_pos[ng_index] = None
-        self.ng_pos[ng_index] = None
+            h1 = self.ng_h1[ng_index][loc][wormsindex, :]
+            try:
+                h2 = self.ng_h2[ng_index][loc][wormsindex, :]
+            except KeyError:
+                h2 = None
+            self._merge_positions_2(loc, h1, h2, opos)
+            self.ng_h1[ng_index][loc] = ndelete(self.ng_h1[ng_index][loc], wormsindex, 0)
+            try:
+                self.ng_h2[ng_index][loc] = ndelete(self.ng_h2[ng_index][loc], wormsindex, 0)
+            except KeyError:
+                pass
+
+
 
 
     def add_worms(self, oworms=None, index=None, update=False):
@@ -218,8 +235,7 @@ class Worms(object):
             print('No worms to drop')
             pass
         """
-        # Reimplantations
-        # Alpha sum
+        # Need to rework this. Or simply move adults up
         index = np.array(index)
         if len(index) != 0 and self.meta.shape[0] !=0:
             adults = self.meta.ng_index.isnull().sum()
@@ -248,17 +264,36 @@ class Worms(object):
     def age_worms(self):
         # Move juveniles to age l3 to adult age 1
         juviix12 = self.meta.query('(age > 12) & (stage == "J")').index.values
+        print('juviix12 stuff')
+        print(self.meta.loc[juviix12, 'ng_index'].unique())
+        # Run specialized addworms here
+        # ADD in juveniles to main haplotypes
+        ng_indexes = self.meta.loc[juviix12, 'ng_index'].unique()
+        for i in ng_indexes:
+            print('Aging worms from ng_index: {0!s}'.format(i))
+            print(i)
+            i = int(i)
+            ng_set = self.meta.ix[np.isclose(self.meta.ng_index , i),:]
+            ng_set_index = np.arange(ng_set.shape[0])
+            ng_hap_index = ng_set_index[(ng_set.age > 12) &\
+                    (ng_set.stage == "J")]
+            # Not sure if this part 
+            # Prune only the about to be added set
+            # self._prune_genotypes(i)
+            self._add_worms(i, ng_hap_index)
+            # ng_index get's reset to nothing if added to adults
+            self.meta.loc[self.meta.ng_index == i, 'ng_index'] = np.nan
+
         self.meta.loc[juviix12, 'stage'] = "A"
         self.meta.loc[juviix12, 'R0net'] += 1
         self.meta.loc[juviix12, 'age'] = 1
-        # Run specialized addworms here
-        # ADD in juveniles to main haplotypes
-        for i in self.meta.loc[juviix12, 'ng_index'].unique():
-            print('Pruning: ')
-            print(i)
-            self._prune_genotypes(i)
-            self._add_worms(i)
-            self.meta.loc[self.meta.ng_index == i, 'ng_index'] = np.nan
+        # Resort so that only adults are at the beginning of meta
+        if len(juviix12) > 0:
+            self.meta = pd.concat([self.meta.query("stage == 'A'"),
+                self.meta.query("stage != 'A'")])
+            import ipdb
+            ipdb.set_trace()
+        else: pass
 
         
 
@@ -267,12 +302,13 @@ class Worms(object):
         """
         """
         other_worms.meta['ng_index'] = np.repeat(len(self.ng_h1), other_worms.meta.shape[0])
+        
         self.ng_h1.append(other_worms.h1)
         self.ng_h2.append(other_worms.h2)
         self.new_pos.append(new_positions)
         self.ng_pos.append(other_worms.pos)
         self.new_pos_iix.append(new_pos_iix)
-        self.meta = pd.concat([self.meta, other_worms.meta])
+        self.meta = pd.concat([self.meta, other_worms.meta], ignore_index=True)
 
 
 

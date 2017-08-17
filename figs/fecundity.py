@@ -64,7 +64,6 @@ def fecunditybase_fx(fecund,
     df_new_mf, new_positions, new_pos_iix = worms_mutation(locus, df_new_mf,
          mutation_rate, recombination_rate, basepairs)
     df_new_mf = fitness_fx(df_new_mf, dfworm, cdslist)
-
     # New_pos_iix isn't used at the moment
     dfworm._partial_add(df_new_mf, new_positions, new_pos_iix)
     

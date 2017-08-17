@@ -165,8 +165,7 @@ def survivalbase_fx(month,
                 shapeMF, loc=0, scale=scaleMF)
     except TypeError:
         kill_mffxage = weibull_min.cdf(0, shapeMF, loc=0, scale=scaleMF)
-    import ipdb
-    ipdb.set_trace()
+    
     dieMF = mfiix[np.where(kill_mfrand < kill_mffxage)]
     dfworm.meta.ix[mfiix, 'age'] += 1
     ##move Juv age 13 to adult age 1
